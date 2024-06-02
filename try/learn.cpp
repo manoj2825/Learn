@@ -1,25 +1,27 @@
 #include <iostream>
 #include <tuple>
 using namespace std;
-class dummy
+
+class test
 {
     public:
-        int val;
-
-        dummy(int x):val(x){}
-        // dummy(dummy obj)
-        // {
-
-        // }
-            dummy(dummy& obj) {
-        val = obj.val;
-    }
-
+    test();
 };
 
+test::test()
+{
+    cout<<"test created\n";
+}
+
 int main() {
-    dummy test(5);
-    dummy test1 =test;
-    tuple <int,string,char,int,string ,float> test;
+   
+  test t1;
+
+  int x=173;
+
+  cout<<x/10<<" "<<x%10<<endl;
+
+  int* value = new int(3);
+  cout<<*value<<endl;
 
 }  

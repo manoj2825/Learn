@@ -8,7 +8,7 @@ void printMessage()
 
 int main() {
 
-    thread t(printMessage);
-    t.join();
+    // thread t(printMessage);
+    // t.join();
     
 }
