@@ -2,12 +2,12 @@
 
 class Base {
 public:
-     virtual void foo() { std::cout << "Base::foo()" << std::endl; }
+      void foo() { std::cout << "Base::foo()" << std::endl; }
 };
 
 class Derived : public Base {
 public:
-    void foo() override  { std::cout << "Derived::foo()" << std::endl; }
+    void foo()   { std::cout << "Derived::foo()" << std::endl; }
 };
 
 int main() {
@@ -16,8 +16,10 @@ int main() {
     // ptr->Base::foo(); // Calls Base::foo() explicitly
     // delete ptr;
     //Base * ptr =new Base();
-    Base* ptr = new Derived();
-    ptr->foo();
-    delete ptr;
+    // Base* ptr = new Derived();
+    // ptr->foo();
+    // delete ptr;
+    Derived o;
+    o.foo();
     return 0;
 }
