@@ -25,3 +25,6 @@ int main() {
   cout<<*value<<endl;
 
 }  
+
+
+// if (((*pps).wPPlcyPrintRelease != bool_true) && ((*pps).wPPlcyRetention != bool_true))
