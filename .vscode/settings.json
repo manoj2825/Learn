@@ -4,6 +4,13 @@
         "ostream": "cpp",
         "fstream": "cpp",
         "thread": "cpp",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "xstring": "cpp",
+        "ios": "cpp",
+        "chrono": "cpp",
+        "limits": "cpp",
+        "utility": "cpp",
+        "unordered_map": "cpp",
+        "vector": "cpp"
     }
 }

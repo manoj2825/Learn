@@ -16,10 +16,10 @@ int main() {
     // ptr->Base::foo(); // Calls Base::foo() explicitly
     // delete ptr;
     //Base * ptr =new Base();
-    // Base* ptr = new Derived();
-    // ptr->foo();
+     Base* ptr = new Derived();
+     ptr->foo();
     // delete ptr;
-    Derived o;
-    o.foo();
+   // Derived o;
+   // o.foo();
     return 0;
 }
