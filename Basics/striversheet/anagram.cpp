@@ -29,7 +29,7 @@ BOOL solve(string s, string t)
 
 int main() {
     string s="rat";
-    string t ="car";
+    string t ="tar";
 
     if(solve(s,t))
     {

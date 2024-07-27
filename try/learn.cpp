@@ -15,14 +15,22 @@ test::test()
 
 int main() {
    
-  test t1;
+  // test t1;
 
-  int x=173;
+  // int x=173;
 
-  cout<<x/10<<" "<<x%10<<endl;
+  // cout<<x/10<<" "<<x%10<<endl;
 
-  int* value = new int(3);
-  cout<<*value<<endl;
+  // int* value = new int(3);
+  // cout<<*value<<endl;
+
+static int x=10;
+  for(int i =0;i<5;i++)
+  {
+    x=0;
+    x++;
+  }
+  cout<<x<<endl;
 
 }  
 
