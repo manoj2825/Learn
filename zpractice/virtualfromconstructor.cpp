@@ -16,9 +16,18 @@ class Base
 class derived:public Base
 {
     public:
-        derived(int y):Base
+        derived(int y,int x):Base(x){
+            Base *b;
+            b=this;
+            b->fun();
+        }
+        void fun()
+        {
+            cout<<"Derived Function"<<endl;
+        }
 };
 
 int main() {
     
+    Base* obj =new derived(5,2);
 }
