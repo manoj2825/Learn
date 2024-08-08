@@ -16,6 +16,7 @@
         "type_traits": "cpp",
         "xlocnum": "cpp",
         "xtr1common": "cpp",
-        "iosfwd": "cpp"
+        "iosfwd": "cpp",
+        "semaphore": "cpp"
     }
 }

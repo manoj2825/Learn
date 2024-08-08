@@ -68,7 +68,7 @@ int  height(Node* root)
     int leftheight = height(root->left);
     int rightheight = height(root->right);
 
-    return max(leftheight,rightheight)+1;;
+    return max(leftheight,rightheight)+1;
 }
 
 
