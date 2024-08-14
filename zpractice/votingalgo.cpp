@@ -12,6 +12,7 @@ int findMajorityElement(const std::vector<int>& nums) {
         if(count==0)
         {
             candidate=num;
+            count =1;
         }
         else if(num == candidate)
         {

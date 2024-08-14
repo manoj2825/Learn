@@ -22,6 +22,8 @@ struct Printer
 
 int main() {
     
-    Printer one = Printer(2024,"Color",1000);
+   // Printer one = Printer(2024,"Color",1000);
+   Printer one(2024,"black",100);
+   cout<<one.color<<endl;
     
 }

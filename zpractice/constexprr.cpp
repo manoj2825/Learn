@@ -7,5 +7,6 @@ constexpr int square (int x)
 }
 int main() {
     
-
+ constexpr int ans = square(4);
+ cout<<ans<<endl;
 }
