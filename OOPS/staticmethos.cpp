@@ -25,4 +25,14 @@ int main() {
 
     Base::countmethod();
     cout << "Count after calling countmethod again: " << Base::count << endl;
+
+    Base b;
+    b.count++;
+
+    cout<<b.count<<endl;
+
+    Base b2;
+    b2.count++;
+
+    cout<<Base::count<<endl;
 }
