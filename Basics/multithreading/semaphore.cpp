@@ -5,11 +5,18 @@
 
 using namespace std;
 
-counting_semaphore<3> semaphore;
+//counting_semaphore<3> countingsemaphore(3);
+counting_semaphore<> countingsemaphore(3);
 
 
 void worker(int id)
 {
+
+    cout<<"thread id : "<<id<<"waiting to enter"<<endl;
+    countingsemaphore.acquire();
+    cout<<"thread id : "<<id<<"entered"<<endl;
+    this_thread::sleep_for(100ms);
+    countingsemaphore.release();
 
 }
 

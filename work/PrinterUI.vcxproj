@@ -1,0 +1,668 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ARM">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|ARM64">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM">
+      <Configuration>Release</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="PropertySheets">
+    <DriverType />
+    <PlatformToolset>WindowsApplicationForDrivers10.0</PlatformToolset>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Label="Globals">
+    <VCTargetsPath Condition="'$(VCTargetsPath11)' != '' and '$(VisualStudioVersion)' == '11.0'">$(VCTargetsPath11)</VCTargetsPath>
+    <Configuration>Win8 Debug</Configuration>
+    <Platform Condition="'$(Platform)' == ''">Win32</Platform>
+    <DebuggerFlavor Condition="'$(PlatformToolset)' == 'WindowsKernelModeDriver8.0'">DbgengKernelDebugger</DebuggerFlavor>
+    <DebuggerFlavor Condition="'$(PlatformToolset)' == 'WindowsUserModeDriver8.0'">DbgengRemoteDebugger</DebuggerFlavor>
+    <SampleGuid>{108D07E4-FA14-4637-A701-3FABE4CC75AD}</SampleGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{94CEEEE1-EC2B-499F-87FE-827BB45EA5DD}</ProjectGuid>
+    <RootNamespace>$(MSBuildProjectName)</RootNamespace>
+    <ProjectName>PrinterUI</ProjectName>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <TargetVersion>Windows7</TargetVersion>
+    <UseDebugLibraries>True</UseDebugLibraries>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <DriverTargetPlatform>
+    </DriverTargetPlatform>
+    <_NT_TARGET_VERSION>
+    </_NT_TARGET_VERSION>
+    <SpectreMitigation>false</SpectreMitigation>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
+    <TargetVersion>Windows10</TargetVersion>
+    <UseDebugLibraries>True</UseDebugLibraries>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <DriverTargetPlatform />
+    <_NT_TARGET_VERSION />
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <TargetVersion>Windows7</TargetVersion>
+    <UseDebugLibraries>False</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <SpectreMitigation>false</SpectreMitigation>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
+    <TargetVersion>Windows10</TargetVersion>
+    <UseDebugLibraries>False</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <TargetVersion>Windows7</TargetVersion>
+    <UseDebugLibraries>True</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <SpectreMitigation>false</SpectreMitigation>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
+    <TargetVersion>Windows10</TargetVersion>
+    <UseDebugLibraries>True</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <TargetVersion>Windows7</TargetVersion>
+    <UseDebugLibraries>False</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <SpectreMitigation>false</SpectreMitigation>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
+    <TargetVersion>Windows10</TargetVersion>
+    <UseDebugLibraries>False</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup>
+    <OutDir>$(ProjectDir)$(Configuration)\$(Platform)\</OutDir>
+  </PropertyGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+  </ImportGroup>
+  <PropertyGroup>
+    <TargetName>$(ProjectName)</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <Link>
+      <EntryPointSymbol Condition="'$(Platform)'=='win32'">
+      </EntryPointSymbol>
+      <EntryPointSymbol Condition="'$(Platform)'!='win32'">_DllMainCRTStartup</EntryPointSymbol>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>_WIN32_WINNT=0x0A00;WINVER=0x0A00;NTDDI_VERSION=0x0A000006;_WIN32;_WINDOWS;_USRDLL;ISOLATION_AWARE_ENABLED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Midl>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);USERMODE_DRIVER;_UNICODE;UNICODE</PreprocessorDefinitions>
+    </Midl>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_X86_=1;i386=1;STD_CALL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+    <Link>
+      <AdditionalDependencies>%(AdditionalDependencies);gdi32.lib;kernel32.lib;user32.lib;winspool.lib;ole32.lib;oleaut32.lib;advapi32.lib;uuid.lib;htmlhelp.lib;netapi32.lib;uxtheme.lib;Wtsapi32.lib;wininet.lib</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <EnableManagedIncrementalBuild>false</EnableManagedIncrementalBuild>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <GenerateManifest>false</GenerateManifest>
+    <IntDir>$(Configuration)\</IntDir>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <EnableManagedIncrementalBuild>false</EnableManagedIncrementalBuild>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <GenerateManifest>false</GenerateManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IntDir>$(Configuration)\</IntDir>
+    <EnableManagedIncrementalBuild>true</EnableManagedIncrementalBuild>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <EnableManagedIncrementalBuild>true</EnableManagedIncrementalBuild>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IntDir>$(Configuration)\</IntDir>
+    <EnableManagedIncrementalBuild>true</EnableManagedIncrementalBuild>
+    <IncludePath>$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <EnableManagedIncrementalBuild>true</EnableManagedIncrementalBuild>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <EnableManagedIncrementalBuild>true</EnableManagedIncrementalBuild>
+    <IntDir>$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <EnableManagedIncrementalBuild>true</EnableManagedIncrementalBuild>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <Link>
+      <AdditionalOptions>%(AdditionalOptions)                /ignore:4070</AdditionalOptions>
+      <ModuleDefinitionFile>PRINTERUI.def</ModuleDefinitionFile>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</GenerateDebugInformation>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">false</GenerateDebugInformation>
+      <TreatLinkerWarningAsErrors Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</TreatLinkerWarningAsErrors>
+      <TreatLinkerWarningAsErrors Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">false</TreatLinkerWarningAsErrors>
+      <TreatLinkerWarningAsErrors Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</TreatLinkerWarningAsErrors>
+      <TreatLinkerWarningAsErrors Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">false</TreatLinkerWarningAsErrors>
+      <TreatLinkerWarningAsErrors Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</TreatLinkerWarningAsErrors>
+      <TreatLinkerWarningAsErrors Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">false</TreatLinkerWarningAsErrors>
+      <TreatLinkerWarningAsErrors Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</TreatLinkerWarningAsErrors>
+      <TreatLinkerWarningAsErrors Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">false</TreatLinkerWarningAsErrors>
+      <ManifestFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ManifestFile>
+      <ManifestFile Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+      </ManifestFile>
+      <AllowIsolation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</AllowIsolation>
+      <AllowIsolation Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</AllowIsolation>
+      <EnableUAC Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</EnableUAC>
+      <EnableUAC Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</EnableUAC>
+      <UACExecutionLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AsInvoker</UACExecutionLevel>
+      <UACExecutionLevel Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">AsInvoker</UACExecutionLevel>
+      <UACUIAccess Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</UACUIAccess>
+      <UACUIAccess Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">false</UACUIAccess>
+      <AllowIsolation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</AllowIsolation>
+      <AllowIsolation Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</AllowIsolation>
+      <EnableUAC Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</EnableUAC>
+      <EnableUAC Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</EnableUAC>
+      <UACExecutionLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AsInvoker</UACExecutionLevel>
+      <UACExecutionLevel Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">AsInvoker</UACExecutionLevel>
+      <UACUIAccess Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</UACUIAccess>
+      <UACUIAccess Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">false</UACUIAccess>
+      <AllowIsolation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</AllowIsolation>
+      <AllowIsolation Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</AllowIsolation>
+      <EnableUAC Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</EnableUAC>
+      <EnableUAC Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</EnableUAC>
+      <UACExecutionLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AsInvoker</UACExecutionLevel>
+      <UACExecutionLevel Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">AsInvoker</UACExecutionLevel>
+      <UACUIAccess Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</UACUIAccess>
+      <UACUIAccess Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">false</UACUIAccess>
+      <AllowIsolation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</AllowIsolation>
+      <AllowIsolation Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</AllowIsolation>
+      <EnableUAC Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableUAC>
+      <EnableUAC Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</EnableUAC>
+      <UACExecutionLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AsInvoker</UACExecutionLevel>
+      <UACExecutionLevel Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">AsInvoker</UACExecutionLevel>
+      <UACUIAccess Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</UACUIAccess>
+      <UACUIAccess Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</UACUIAccess>
+      <ProgramDatabaseFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+      <ProgramDatabaseFile Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+      </ProgramDatabaseFile>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateDebugInformation>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">false</GenerateDebugInformation>
+      <ProgramDatabaseFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+      <ProgramDatabaseFile Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+      </ProgramDatabaseFile>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFull</GenerateDebugInformation>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Windows</SubSystem>
+      <MinimumRequiredVersion Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SUBSYSTEM_NATVER)</MinimumRequiredVersion>
+      <OptimizeReferences Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</OptimizeReferences>
+      <EnableCOMDATFolding Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</EnableCOMDATFolding>
+    </Link>
+    <ClCompile>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">None</DebugInformationFormat>
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">None</DebugInformationFormat>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Include;..\Common\Include;..\BitmapResource\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Include;..\Common\Include;..\BitmapResource\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Include;..\Common\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Include;..\Common\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Include;..\Common\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">Include;..\Common\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Include;..\Common\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">Include;..\Common\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</IntrinsicFunctions>
+      <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">false</IntrinsicFunctions>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">MultiThreadedDebug</RuntimeLibrary>
+      <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</IntrinsicFunctions>
+      <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">false</IntrinsicFunctions>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">MultiThreadedDebug</RuntimeLibrary>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">MaxSpeed</Optimization>
+      <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Neither</FavorSizeOrSpeed>
+      <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Neither</FavorSizeOrSpeed>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">MultiThreaded</RuntimeLibrary>
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">None</DebugInformationFormat>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">MaxSpeed</Optimization>
+      <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Neither</FavorSizeOrSpeed>
+      <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">Neither</FavorSizeOrSpeed>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">MultiThreaded</RuntimeLibrary>
+      <EnablePREfast Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</EnablePREfast>
+      <EnablePREfast Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">false</EnablePREfast>
+      <EnablePREfast Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</EnablePREfast>
+      <EnablePREfast Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">false</EnablePREfast>
+      <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ControlFlowGuard>
+      <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">false</ControlFlowGuard>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">stdafx.h</PrecompiledHeaderFile>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Default</BasicRuntimeChecks>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Default</BasicRuntimeChecks>
+      <SDLCheck Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </SDLCheck>
+      <SDLCheck Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+      </SDLCheck>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Disabled</Optimization>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4748;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">4748;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">ProgramDatabase</DebugInformationFormat>
+      <ShowIncludes Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ShowIncludes>
+      <ShowIncludes Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">false</ShowIncludes>
+      <MinimalRebuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</MinimalRebuild>
+    </ClCompile>
+    <PostBuildEvent>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+      </Command>
+    </PostBuildEvent>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir);%(AdditionalIncludeDirectories);$(VC_ATLMFC_IncludePath)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(IntDir);%(AdditionalIncludeDirectories);$(VC_ATLMFC_IncludePath)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <PreBuildEvent>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+      </Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Inf Exclude="@(Inf)" Include="*.inf" />
+    <FilesToPackage Include="$(TargetPath)" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Exclude="@(None)" Include="*.txt;*.htm;*.html" />
+    <None Exclude="@(None)" Include="*.ico;*.cur;*.bmp;*.dlg;*.rct;*.gif;*.jpg;*.jpeg;*.wav;*.jpe;*.tiff;*.tif;*.png;*.rc2" />
+    <None Include="PrinterUI.def" />
+    <None Include="Src\json\json_valueiterator.inl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Common\Src\aes_core.cpp" />
+    <ClCompile Include="..\Common\Src\debug.cpp" />
+    <ClCompile Include="..\Common\Src\devmode.cpp" />
+    <ClCompile Include="..\Common\Src\Helper.cpp" />
+    <ClCompile Include="..\Common\Src\md5.cpp" />
+    <ClCompile Include="..\Common\Src\RegistryAPI.cpp" />
+    <ClCompile Include="..\Common\Src\sh_api.cpp" />
+    <ClCompile Include="..\Common\Src\UtilityFunctions.cpp" />
+    <ClCompile Include="Src\AboutDialog.cpp" />
+    <ClCompile Include="Src\ActivationContext.cpp" />
+    <ClCompile Include="Src\Bitmap.cpp" />
+    <ClCompile Include="Src\Button.cpp" />
+    <ClCompile Include="Src\ColorPreview.cpp" />
+    <ClCompile Include="Src\ColorTabPropertyPage.cpp" />
+    <ClCompile Include="Src\CShDlgStored2.cpp" />
+    <ClCompile Include="Src\CustomFormEditBox.cpp" />
+    <ClCompile Include="Src\CustomPaperSettingsCombo.cpp" />
+    <ClCompile Include="Src\CustomPaperSettingsDlg.cpp" />
+    <ClCompile Include="Src\dlg_jobhand01.cpp" />
+    <ClCompile Include="Src\FinishingTabPropertyPage.cpp" />
+    <ClCompile Include="Src\InformationIconButton.cpp" />
+    <ClCompile Include="Src\ini_mfpif.cpp" />
+    <ClCompile Include="Src\json\json_reader.cpp" />
+    <ClCompile Include="Src\json\json_value.cpp" />
+    <ClCompile Include="Src\json\json_writer.cpp" />
+    <ClCompile Include="Src\LangCombo.cpp" />
+    <ClCompile Include="Src\LayoutTabPropertyPage.cpp" />
+    <ClCompile Include="Src\lim.cpp" />
+    <ClCompile Include="Src\MimicImage.cpp" />
+    <ClCompile Include="Src\MimicImageConfigTab.cpp" />
+    <ClCompile Include="Src\MimicText.cpp" />
+    <ClCompile Include="Src\OtherSettingsDialog.cpp" />
+    <ClCompile Include="Src\ShAuthenticationDialog.cpp" />
+    <ClCompile Include="Src\ShBitmapList.cpp" />
+    <ClCompile Include="Src\ShBtnImgTxt.cpp" />
+    <ClCompile Include="Src\ShBtnMarginShift.cpp" />
+    <ClCompile Include="Src\ShBtnSpin.cpp" />
+    <ClCompile Include="Src\ShButtonOwnd.cpp" />
+    <ClCompile Include="Src\ShCmbMarginShift.cpp" />
+    <ClCompile Include="Src\ShComboBookletStandardPaperSize.cpp" />
+    <ClCompile Include="Src\ShComboColors.cpp" />
+    <ClCompile Include="Src\ShEditLoginName.cpp" />
+    <ClCompile Include="Src\ShEditPPOS.cpp" />
+    <ClCompile Include="Src\ShEditSpin.cpp" />
+    <ClCompile Include="Src\ShEditUnit.cpp" />
+    <ClCompile Include="Src\shHttpGet.cpp" />
+    <ClCompile Include="Src\ShImageCombo.cpp" />
+    <ClCompile Include="Src\ShJobControlRegistry.cpp" />
+    <ClCompile Include="Src\shJson.cpp" />
+    <ClCompile Include="Src\shJsonus.cpp" />
+    <ClCompile Include="Src\shJsonwm.cpp" />
+    <ClCompile Include="Src\ShListUserSetting_Com.cpp" />
+    <ClCompile Include="Src\ShListUserSetting.cpp" />
+    <ClCompile Include="Src\shListview.cpp" />
+    <ClCompile Include="Src\shListviewStored.cpp" />
+    <ClCompile Include="Src\ShMarginShiftRegistry.cpp" />
+    <ClCompile Include="Src\ShowMessageStaple.cpp" />
+    <ClCompile Include="Src\ShPrintPositionRegistry.cpp" />
+    <ClCompile Include="Src\shreg.cpp" />
+    <ClCompile Include="Src\shregac.cpp" />
+    <ClCompile Include="Src\shregacmib.cpp" />
+    <ClCompile Include="Src\shregmt.cpp" />
+    <ClCompile Include="Src\shregsm.cpp" />
+    <ClCompile Include="Src\shregst.cpp" />
+    <ClCompile Include="Src\shregstr.cpp" />
+    <ClCompile Include="Src\shregus.cpp" />
+    <ClCompile Include="Src\ShTabdlgFrame.cpp" />
+    <ClCompile Include="Src\ShPrintPositionDialog.cpp" />
+    <ClCompile Include="Src\DialogCheckMessage.cpp" />
+    <ClCompile Include="Src\ShUserSetDialog.cpp" />
+    <ClCompile Include="Src\sh_cmb_userset.cpp" />
+    <ClCompile Include="Src\sh_dlg_addfolder.cpp" />
+    <ClCompile Include="Src\sh_dlg_autoconf.cpp" />
+    <ClCompile Include="Src\sh_dlg_printingpolicy.cpp" />
+    <ClCompile Include="Src\sh_dlg_spn.cpp" />
+    <ClCompile Include="Src\sh_dlg_update.cpp" />
+    <ClCompile Include="Src\sh_edit.cpp" />
+    <ClCompile Include="Src\sh_edit_foldername.cpp" />
+    <ClCompile Include="Src\ShEditJName.cpp" />
+    <ClCompile Include="Src\SpinControl.cpp" />
+    <ClCompile Include="Src\CustomDialogData.cpp" />
+    <ClCompile Include="Src\CustomPaperUnitRadio.cpp" />
+    <ClCompile Include="Src\DefaultButton.cpp" />
+    <ClCompile Include="Src\CheckBox.cpp" />
+    <ClCompile Include="Src\Combo.cpp" />
+    <ClCompile Include="Src\CopiesEdit.cpp" />
+    <ClCompile Include="Src\CustomPaperButton.cpp" />
+    <ClCompile Include="Src\CustomPaperDlg.cpp" />
+    <ClCompile Include="Src\DefaultEdit.cpp" />
+    <ClCompile Include="Src\DevicePropertyPage.cpp" />
+    <ClCompile Include="Src\DevModeUpDate.cpp" />
+    <ClCompile Include="Src\dllentry.cpp" />
+    <ClCompile Include="Src\DocumentEvent.cpp" />
+    <ClCompile Include="Src\DocumentPropertyPage.cpp" />
+    <ClCompile Include="Src\GDLSnapShot.cpp" />
+    <ClCompile Include="Src\GPDData.cpp" />
+    <ClCompile Include="Src\GPDFeatures.cpp" />
+    <ClCompile Include="Src\inifile.cpp" />
+    <ClCompile Include="Src\intrface.cpp" />
+    <ClCompile Include="Src\JobControlEdit.cpp" />
+    <ClCompile Include="Src\JobHandlingDialog.cpp" />
+    <ClCompile Include="Src\JobHandlingTabPropertyPage.cpp" />
+    <ClCompile Include="Src\MainTabPropertyPage.cpp" />
+    <ClCompile Include="Src\MilliInchPixelConversion.cpp" />
+    <ClCompile Include="Src\PaperTabPropertyPage.cpp" />
+    <ClCompile Include="Src\CustomPaperEditBox.cpp" />
+    <ClCompile Include="Src\precompsrc.cpp" />
+    <ClCompile Include="Src\PrintCoreHelper.cpp" />
+    <ClCompile Include="Src\PrinterEvent.cpp" />
+    <ClCompile Include="Src\PrinterSelectionButton.cpp" />
+    <ClCompile Include="Src\PrinterSelectionCombo.cpp" />
+    <ClCompile Include="Src\Radio.cpp" />
+    <ClCompile Include="Src\ShowJobHandlingMessage.cpp" />
+    <ClCompile Include="Src\ShowMessage.cpp" />
+    <ClCompile Include="Src\tabinfoctrl.cpp" />
+    <ClCompile Include="Src\UserPaperSizeRegistry.cpp" />
+    <ClCompile Include="Src\WaterMarkCheckBox .cpp" />
+    <ClCompile Include="Src\WaterMarkComboChartSet.cpp" />
+    <ClCompile Include="Src\WaterMarkDialog.cpp" />
+    <ClCompile Include="Src\WaterMarkEditDialog.cpp" />
+    <ClCompile Include="Src\WaterMarkEditFont.cpp" />
+    <ClCompile Include="Src\WaterMarkFile.cpp" />
+    <ClCompile Include="Src\WaterMarkFontPreview.cpp" />
+    <ClCompile Include="Src\WaterMarkAddDialog.cpp" />
+    <ClCompile Include="Src\WaterMarkEdit.cpp" />
+    <ClCompile Include="Src\WaterMarkPreview.cpp" />
+    <ClCompile Include="Src\WaterMarkScrollBar.cpp" />
+    <ClCompile Include="Src\WaterMarkRegistryData.cpp" />
+    <ClCompile Include="Src\StaticText.cpp" />
+    <ClCompile Include="Src\SysLinkCtrl.cpp" />
+    <ClCompile Include="Src\UIControl.cpp" />
+    <ClCompile Include="Src\UserData.cpp" />
+    <ClCompile Include="Src\Utils.cpp" />
+    <ClCompile Include="Src\WaterMarkCombo.cpp" />
+    <ClCompile Include="Src\XMLDOMParser.cpp" />
+    <ClCompile Include="Src\ZoomSettingsDialog.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Common\Include\aes.h" />
+    <ClInclude Include="..\Common\Include\aes_locl.h" />
+    <ClInclude Include="..\Common\Include\debug.h" />
+    <ClInclude Include="..\Common\Include\define.h" />
+    <ClInclude Include="..\Common\Include\devmode.h" />
+    <ClInclude Include="..\Common\Include\Helper.h" />
+    <ClInclude Include="..\Common\Include\md5.h" />
+    <ClInclude Include="..\Common\Include\RegistryAPI.h" />
+    <ClInclude Include="..\Common\Include\Core.h" />
+    <ClInclude Include="..\Common\Include\regkey.h" />
+    <ClInclude Include="..\Common\Include\resource.h" />
+    <ClInclude Include="..\Common\Include\sharefav.h" />
+    <ClInclude Include="..\Common\Include\sh_api.h" />
+    <ClInclude Include="..\Common\Include\UtilityFunctions.h" />
+    <ClInclude Include="Include\AboutDialog.h" />
+    <ClInclude Include="Include\ActivationContext.h" />
+    <ClInclude Include="Include\Bitmap.h" />
+    <ClInclude Include="Include\Button.h" />
+    <ClInclude Include="Include\ColorPreview.h" />
+    <ClInclude Include="Include\ColorTabPropertyPage.h" />
+    <ClInclude Include="Include\CShDlgStored2.h" />
+    <ClInclude Include="Include\CustomDialogData.h" />
+    <ClInclude Include="Include\CustomFormEditBox.h" />
+    <ClInclude Include="Include\CustomPaperSettingsCombo.h" />
+    <ClInclude Include="Include\CustomPaperSettingsDlg.h" />
+    <ClInclude Include="Include\CustomPaperUnitRadio.h" />
+    <ClInclude Include="Include\DefaultButton.h" />
+    <ClInclude Include="Include\CheckBox.h" />
+    <ClInclude Include="Include\Combo.h" />
+    <ClInclude Include="Include\CopiesEdit.h" />
+    <ClInclude Include="Include\CustomPaperButton.h" />
+    <ClInclude Include="Include\CustomPaperDlg.h" />
+    <ClInclude Include="Include\c_windef.h" />
+    <ClInclude Include="Include\DefaultEdit.h" />
+    <ClInclude Include="Include\DevicePropertyPage.h" />
+    <ClInclude Include="Include\DevModeUpDate.h" />
+    <ClInclude Include="Include\dlg_jobhand01.h" />
+    <ClInclude Include="Include\DocumentEvent.h" />
+    <ClInclude Include="Include\DocumentPropertyPage.h" />
+    <ClInclude Include="Include\FinishingTabPropertyPage.h" />
+    <ClInclude Include="Include\GDLSnapShot.h" />
+    <ClInclude Include="Include\GPDData.h" />
+    <ClInclude Include="Include\GPDFeatures.h" />
+    <ClInclude Include="Include\InformationIconButton.h" />
+    <ClInclude Include="Include\inifile.h" />
+    <ClInclude Include="Include\inikey.h" />
+    <ClInclude Include="Include\ini_mfpif.h" />
+    <ClInclude Include="Include\intrface.h" />
+    <ClInclude Include="Include\JobControlEdit.h" />
+    <ClInclude Include="Include\JobHandlingDialog.h" />
+    <ClInclude Include="Include\JobHandlingTabPropertyPage.h" />
+    <ClInclude Include="Include\jsonkey.h" />
+    <ClInclude Include="Include\json\assertions.h" />
+    <ClInclude Include="Include\json\autolink.h" />
+    <ClInclude Include="Include\json\config.h" />
+    <ClInclude Include="Include\json\features.h" />
+    <ClInclude Include="Include\json\forwards.h" />
+    <ClInclude Include="Include\json\json.h" />
+    <ClInclude Include="Include\json\reader.h" />
+    <ClInclude Include="Include\json\value.h" />
+    <ClInclude Include="Include\json\version.h" />
+    <ClInclude Include="Include\json\writer.h" />
+    <ClInclude Include="Include\LangCombo.h" />
+    <ClInclude Include="Include\LayoutTabPropertyPage.h" />
+    <ClInclude Include="Include\lim.h" />
+    <ClInclude Include="Include\MainTabPropertyPage.h" />
+    <ClInclude Include="Include\MilliInchPixelConversion.h" />
+    <ClInclude Include="Include\MimicImage.h" />
+    <ClInclude Include="Include\MimicImageConfigTab.h" />
+    <ClInclude Include="Include\MimicText.h" />
+    <ClInclude Include="Include\OtherSettingsDialog.h" />
+    <ClInclude Include="Include\PaperTabPropertyPage.h" />
+    <ClInclude Include="Include\CustomPaperEditBox.h" />
+    <ClInclude Include="Include\ppstate.h" />
+    <ClInclude Include="Include\precomp.h" />
+    <ClInclude Include="Include\PrintCoreHelper.h" />
+    <ClInclude Include="Include\PrinterEvent.h" />
+    <ClInclude Include="Include\PrinterSelectionButton.h" />
+    <ClInclude Include="Include\PrinterSelectionCombo.h" />
+    <ClInclude Include="Include\ptpc.h" />
+    <ClInclude Include="Include\Radio.h" />
+    <ClInclude Include="Include\regkey.h" />
+    <ClInclude Include="Include\scuidata.h" />
+    <ClInclude Include="Include\ShAuthenticationDialog.h" />
+    <ClInclude Include="Include\ShBitmapList.h" />
+    <ClInclude Include="Include\ShBtnImgTxt.h" />
+    <ClInclude Include="Include\ShBtnMarginShift.h" />
+    <ClInclude Include="Include\ShBtnSpin.h" />
+    <ClInclude Include="Include\ShButtonOwnd.h" />
+    <ClInclude Include="Include\ShCmbMarginShift.h" />
+    <ClInclude Include="Include\ShComboBookletStandardPaperSize.h" />
+    <ClInclude Include="Include\ShComboColors.h" />
+    <ClInclude Include="Include\ShEditLoginName.h" />
+    <ClInclude Include="Include\ShEditPPOS.h" />
+    <ClInclude Include="Include\ShEditSpin.h" />
+    <ClInclude Include="Include\ShEditUnit.h" />
+    <ClInclude Include="Include\shHttpGet.h" />
+    <ClInclude Include="Include\ShImageCombo.h" />
+    <ClInclude Include="Include\ShJobControlRegistry.h" />
+    <ClInclude Include="Include\shJson.h" />
+    <ClInclude Include="Include\shJsonus.h" />
+    <ClInclude Include="Include\shJsonwm.h" />
+    <ClInclude Include="Include\ShListUserSetting_Com.h" />
+    <ClInclude Include="Include\ShListUserSetting.h" />
+    <ClInclude Include="Include\shListview.h" />
+    <ClInclude Include="Include\shListviewStored.h" />
+    <ClInclude Include="Include\ShMarginShiftRegistry.h" />
+    <ClInclude Include="Include\ShowJobHandlingMessage.h" />
+    <ClInclude Include="Include\ShowMessage.h" />
+    <ClInclude Include="Include\ShowMessageStaple.h" />
+    <ClInclude Include="Include\ShPrintPositionRegistry.h" />
+    <ClInclude Include="Include\shreg.h" />
+    <ClInclude Include="Include\shregac.h" />
+    <ClInclude Include="Include\shregacmib.h" />
+    <ClInclude Include="Include\shregmt.h" />
+    <ClInclude Include="Include\shregsm.h" />
+    <ClInclude Include="Include\shregst.h" />
+    <ClInclude Include="Include\shregstr.h" />
+    <ClInclude Include="Include\shregus.h" />
+    <ClInclude Include="Include\ShTabdlgFrame.h" />
+    <ClInclude Include="Include\ShPrintPositionDialog.h" />
+    <ClInclude Include="Include\DialogCheckMessage.h" />
+    <ClInclude Include="Include\ShUserSetDialog.h" />
+    <ClInclude Include="Include\sh_cmb_userset.h" />
+    <ClInclude Include="Include\sh_dlg_addfolder.h" />
+    <ClInclude Include="Include\sh_dlg_autoconf.h" />
+    <ClInclude Include="Include\sh_dlg_printingpolicy.h" />
+    <ClInclude Include="Include\sh_dlg_spn.h" />
+    <ClInclude Include="Include\sh_dlg_update.h" />
+    <ClInclude Include="Include\sh_edit.h" />
+    <ClInclude Include="Include\sh_edit_foldername.h" />
+    <ClInclude Include="Include\ShEditJName.h" />
+    <ClInclude Include="Include\SpinControl.h" />
+    <ClInclude Include="Include\tabinfoctrl.h" />
+    <ClInclude Include="Include\UserPaperSizeRegistry.h" />
+    <ClInclude Include="Include\WaterMarkComboChartSet.h" />
+    <ClInclude Include="Include\WaterMarkDialog.h" />
+    <ClInclude Include="Include\WaterMarkEditDialog.h" />
+    <ClInclude Include="Include\WaterMarkEditFont.h" />
+    <ClInclude Include="Include\WaterMarkAddDialog.h" />
+    <ClInclude Include="Include\WaterMarkEdit.h" />
+    <ClInclude Include="Include\WaterMarkFile.h" />
+    <ClInclude Include="Include\WaterMarkPreview.h" />
+    <ClInclude Include="Include\WaterMarkScrollbar.h" />
+    <ClInclude Include="Include\WaterMarkCheckBox.h" />
+    <ClInclude Include="Include\WaterMarkFontPreview.h" />
+    <ClInclude Include="Include\WaterMarkRegistryData.h" />
+    <ClInclude Include="Include\SmartPtr.h" />
+    <ClInclude Include="Include\StaticText.h" />
+    <ClInclude Include="Include\StringResource.h" />
+    <ClInclude Include="Include\SysLinkCtrl.h" />
+    <ClInclude Include="Include\UIControl.h" />
+    <ClInclude Include="Include\UserData.h" />
+    <ClInclude Include="Include\UtilityStructure.h" />
+    <ClInclude Include="Include\Utils.h" />
+    <ClInclude Include="Include\WaterMarkCombo.h" />
+    <ClInclude Include="Include\xdexcept.h" />
+    <ClInclude Include="Include\XMLDOMParser.h" />
+    <ClInclude Include="Include\ZoomSettingsDialog.h" />
+    <ClInclude Include="Src\json\json_tool.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Src\PrinterUIProp.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="Src\EnableVisualStyleManifest.xml" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>
