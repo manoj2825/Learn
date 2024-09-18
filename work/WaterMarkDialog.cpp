@@ -1545,6 +1545,7 @@ void CWaterMarkDialog::GetWaterMarkRegistryObject(void)
 	/*CShJsonWm**/ m_pjsonwm = new CShJsonWm(ghInstance, m_pPrinterName, m_hStringResourceHandle);
 	m_pjsonwm->Init();
 	m_pWatermarkregdata->reset(m_pPrinterName, cshinifile);
+	BOOL checkjson = (*cshinifile).IsWriteToJson();
 	if ((*cshinifile).IsWriteToJson() == TRUE)
 	{	// <S><A> 2023.12.28,To Fix feedback issue SSDI:Manoj S
 		if ((*m_pjsonwm).ReadCount() == 0)
@@ -1562,25 +1563,45 @@ void CWaterMarkDialog::GetWaterMarkRegistryObject(void)
 	m_PropertySheetState.wWmIndex = m_pTempOemPrivateDevMode->scpi.ext.nWatermark;
 //<S><C>To the Support of the EXT2 devmode in SCDM Stucture,20201104,SSDI:Chanchal Singla
 	// if scdm watermark language and registry language is different, read the watermark data from file
-	if (m_pTempOemPrivateDevMode->scpi.ext2.Watermark.data.dwWMLangID == m_dwLangID  && m_PropertySheetState.wWmIndex != 0)
-	//if (m_pTempOemPrivateDevMode->scpi.ext.WaterMark.dwWMLangID == m_dwLangID)
+	if (m_pTempOemPrivateDevMode->scpi.ext2.Watermark.data.dwWMLangID == m_dwLangID && m_PropertySheetState.wWmIndex != 0)
+		//if (m_pTempOemPrivateDevMode->scpi.ext.WaterMark.dwWMLangID == m_dwLangID)
 	{
 		//<S><C>To Fix Bug #3689,20210520,SSDI:Chanchal Singla
 		//	Deleted Watermark is displayed when saved User Settings is selected
 		// copy watermark data from SCDM to m_WaterMarkData
 		//memcpy_s(&m_WaterMarkData, sizeof(WATERMARKDATA), &(m_pTempOemPrivateDevMode->scpi.ext.WaterMark), sizeof(WATERMARKDATA));
 		//memcpy_s(&m_WaterMarkData, sizeof(WATERMARKDATA), &(m_pTempOemPrivateDevMode->scpi.ext2.Watermark.data), sizeof(WATERMARKDATA));
-		BOOL wRet = m_pWatermarkregdata->ReadWMData(m_pPrinterName, m_pTempOemPrivateDevMode->scpi.ext.nWatermark, &m_WaterMarkData);
-		//<S><A>To Fix Bug #3882,20210603,SSDI:Chanchal Singla
-		//Watermak: Delete button is enabled even though None exists in the Watermark drop down
-		if (wRet == FALSE)
+		if (checkjson)
 		{
-			m_PropertySheetState.wWmIndex = FALSE;
-			m_pWaterMarkFileData->GetWMDefData(m_PropertySheetState.wWmIndex, &m_WaterMarkData);
+			BOOL wRet = m_pjsonwm->ReadWMData(m_pTempOemPrivateDevMode->scpi.ext.nWatermark, &m_WaterMarkData);
+			//<S><A>To Fix Bug #3882,20210603,SSDI:Chanchal Singla
+			//Watermak: Delete button is enabled even though None exists in the Watermark drop down
+			if (wRet == FALSE)
+			{
+				m_PropertySheetState.wWmIndex = FALSE;
+				m_pjsonwm->GetWMDefData(m_PropertySheetState.wWmIndex, &m_WaterMarkData);
+			}
+			else
+			{
+				m_PropertySheetState.wWmIndex = m_pTempOemPrivateDevMode->scpi.ext.nWatermark;
+			}
+
 		}
 		else
 		{
-			m_PropertySheetState.wWmIndex = m_pTempOemPrivateDevMode->scpi.ext.nWatermark;
+
+			BOOL wRet = m_pWatermarkregdata->ReadWMData(m_pPrinterName, m_pTempOemPrivateDevMode->scpi.ext.nWatermark, &m_WaterMarkData);
+			//<S><A>To Fix Bug #3882,20210603,SSDI:Chanchal Singla
+			//Watermak: Delete button is enabled even though None exists in the Watermark drop down
+			if (wRet == FALSE)
+			{
+				m_PropertySheetState.wWmIndex = FALSE;
+				m_pWaterMarkFileData->GetWMDefData(m_PropertySheetState.wWmIndex, &m_WaterMarkData);
+			}
+			else
+			{
+				m_PropertySheetState.wWmIndex = m_pTempOemPrivateDevMode->scpi.ext.nWatermark;
+			}
 		}
 		//<E>To Fix Bug #3882,20210603,SSDI:Chanchal Singla
 		//<E>To Fix Bug #3689,20210520,SSDI:Chanchal Singla
@@ -1588,7 +1609,14 @@ void CWaterMarkDialog::GetWaterMarkRegistryObject(void)
 	//<E>To the Support of the EXT2 devmode in SCDM Stucture,20201104,SSDI:Chanchal Singla
 	else
 	{
-		m_pWaterMarkFileData->GetWMDefData(m_PropertySheetState.wWmIndex, &m_WaterMarkData);
+		if (checkjson)
+		{
+			m_pjsonwm->GetWMDefData(m_PropertySheetState.wWmIndex, &m_WaterMarkData);
+		}
+		else
+		{
+			m_pWaterMarkFileData->GetWMDefData(m_PropertySheetState.wWmIndex, &m_WaterMarkData);
+		}
 		//<S><A> Fix for Feedback issue 51(Watermark option "None" is not changed based on the language selection, Harika 20210805
 		//m_pWatermarkregdata->WriteWMData(m_pPrinterName, m_PropertySheetState.wWmIndex, &m_WaterMarkData, m_WaterMarkData.szMainWM);
 		//<E> Fix for Feedback issue 51(Watermark option "None" is not changed based on the language selection, Harika 20210805
@@ -2029,22 +2057,48 @@ BOOL CWaterMarkDialog::OnWaterMarkDelete(HWND hDlg)
 	BOOL			bShare = FALSE;
 	WCHAR			szTextHKLMW[REG_ENT_SHARE_KEYSIZEW] = { 0 };
 	//<E>To Implement Task #3114,13-09-2024,SSDI:Manoj S
-	m_pWatermarkregdata->ReadWMData(m_pPrinterName, m_PropertySheetState.wWmIndex, &m_WaterMarkDataChanged);
 	WCHAR szMessageTitle[768] = { 0 };
-	if (LoadString(m_hStringResourceHandle, IDS_MESTITLE_11, szMessageTitle, countof(szMessageTitle)) > 0)
+	WATERMARKDATA WaterMarkDataElement = { 0 };
+	WCHAR szWaterMarkTitle[SCUI_MAX_STRING] = { 0 };
+	if ((*m_pIniFile).IsWriteToJson() == TRUE)
 	{
-		WATERMARKDATA WaterMarkDataElement = { 0 };
-		WCHAR szWaterMarkTitle[SCUI_MAX_STRING] = { 0 };
-		m_pWatermarkregdata->ReadWMData(m_pPrinterName, m_PropertySheetState.wWmIndex, &WaterMarkDataElement, szWaterMarkTitle, sizeof(szWaterMarkTitle));
-		
-		if (IDNO == MessageBox(hDlg, szWaterMarkTitle, szMessageTitle, MB_YESNO))
+		m_pjsonwm->ReadWMData(m_PropertySheetState.wWmIndex, &m_WaterMarkDataChanged);
+		/*WCHAR szMessageTitle[768] = { 0 };*/
+		if (LoadString(m_hStringResourceHandle, IDS_MESTITLE_11, szMessageTitle, countof(szMessageTitle)) > 0)
 		{
-			return FALSE;
+			
+			m_pjsonwm->ReadWMData( m_PropertySheetState.wWmIndex, &WaterMarkDataElement, szWaterMarkTitle, sizeof(szWaterMarkTitle));
+
+			if (IDNO == MessageBox(hDlg, szWaterMarkTitle, szMessageTitle, MB_YESNO))
+			{
+				return FALSE;
+			}
+
 		}
-		
+		//<S><C>To Implement Task#3114,13-09-2024,SSDI:Manoj S
+		m_pjsonwm->DeleteData(m_PropertySheetState.wWmIndex);
+		m_pjsonwm->WriteJsonDataToFile();
 	}
-	//<S><C>To Implement Task#3114,13-09-2024,SSDI:Manoj S
-	m_pWatermarkregdata->DeleteData(m_PropertySheetState.wWmIndex);
+	//else
+	//{
+		m_pWatermarkregdata->ReadWMData(m_pPrinterName, m_PropertySheetState.wWmIndex, &m_WaterMarkDataChanged);
+		/*WCHAR szMessageTitle[768] = { 0 };*/
+		if (LoadString(m_hStringResourceHandle, IDS_MESTITLE_11, szMessageTitle, countof(szMessageTitle)) > 0)
+		{
+			/*WATERMARKDATA WaterMarkDataElement = { 0 };
+			WCHAR szWaterMarkTitle[SCUI_MAX_STRING] = { 0 };*/
+			m_pWatermarkregdata->ReadWMData(m_pPrinterName, m_PropertySheetState.wWmIndex, &WaterMarkDataElement, szWaterMarkTitle, sizeof(szWaterMarkTitle));
+
+			if (IDNO == MessageBox(hDlg, szWaterMarkTitle, szMessageTitle, MB_YESNO))
+			{
+				return FALSE;
+			}
+
+		}
+		//<S><C>To Implement Task#3114,13-09-2024,SSDI:Manoj S
+		m_pWatermarkregdata->DeleteData(m_PropertySheetState.wWmIndex);
+	//}
+
 	m_PropertySheetState.wWmIndex--;
 	OnComboboxSelectionChange(hDlg);
 	memcpy_s(&m_WaterMarkData, sizeof(WATERMARKDATA), &m_WaterMarkDataChanged, sizeof(WATERMARKDATA));
