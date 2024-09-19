@@ -80,6 +80,7 @@ CWaterMarkDialog::CWaterMarkDialog(
 	m_sOrientation = 0;
 	m_pWaterMarkFileData = NULL;
 	m_pIniFile = NULL;
+	m_checkjson = 0;
 	m_bIsWaterMarkDefaultClicked = FALSE;
 	m_pCustomColor = new COLORREF[16]();
 	if (NULL == m_pCustomColor)
@@ -249,22 +250,32 @@ void CWaterMarkDialog::CreateControlClass(void)
 {
 	MFPPrinterUI_Logger slog(__FUNCTION__"\n");
 	HRESULT hr = S_OK;
-//	if ((*m_pIniFile).IsWriteToJson() == TRUE)
-//	{
+	if ((*m_pIniFile).IsWriteToJson() == TRUE)
+	{
 //		//m_pjsonwm = new CShJsonWm(ghInstance, m_pPrinterName, m_hStringResourceHandle);
 //		//m_pjsonwm->Init();
 //		m_pjsonwm->CShJsonWm::DealWithFavItemsInHKLM(m_pPrinterName);
-//		m_pjsonwm->CShJsonWm::SelectTheCorrectFavItem(m_PropertySheetState.szWMNameHash, m_PropertySheetState.wWmIndex);
-//	}
+		m_pjsonwm->SelectTheCorrectFavItemJson(m_PropertySheetState.szWMNameHash, m_PropertySheetState.wWmIndex);
+	}
 ////<S><A>To Implement Task#3114,13-09-2024,SSDI:Manoj S
-//	else
-//	{
+	else
+	{
 		m_pWatermarkregdata->DealWithFavItemsInHKLM(m_pPrinterName);
 		m_pWatermarkregdata->SelectTheCorrectFavItem(m_pPrinterName, m_PropertySheetState.szWMNameHash, m_PropertySheetState.wWmIndex);
-	//}
+	}
 //<E>To Implement Task #3114,13-09-2024,SSDI:Manoj S
-	CUIControl* pControl = new CWaterMarkCombo(m_pWaterMarkFileData, m_pWatermarkregdata, m_PropertySheetState.wWmIndex, m_hStringResourceHandle,
-		m_pPrinterName, m_PropertySheetState.szWM, m_bWaterMarkChanged);
+	CUIControl* pControl = NULL;
+	if ((*m_pIniFile).IsWriteToJson() == TRUE)
+	{
+		BOOL FlagJson = true;
+		pControl = new CWaterMarkCombo(m_pWaterMarkFileData, m_pWatermarkregdata, m_pjsonwm , FlagJson, m_PropertySheetState.wWmIndex, m_hStringResourceHandle,
+			m_pPrinterName, m_PropertySheetState.szWM, m_bWaterMarkChanged);
+	}
+	else
+	{
+		pControl = new CWaterMarkCombo(m_pWaterMarkFileData, m_pWatermarkregdata, m_PropertySheetState.wWmIndex, m_hStringResourceHandle,
+			m_pPrinterName, m_PropertySheetState.szWM, m_bWaterMarkChanged);
+	}
 	if (NULL != pControl)
 	{
 		hr = AddUIControl(IDC_CMB_WM, pControl);
@@ -1114,11 +1125,23 @@ LRESULT CWaterMarkDialog::OnBtnOK(HWND hDlg, HWND hWndCtrl, WORD wCtrlID)
 //<S><A>To Implement Task#3114,13-09-2024,SSDI:Manoj S
 	if (m_PropertySheetState.wWmIndex > 0)
 	{
-		if ((*pregwm).GetTitle(m_pPrinterName, szTitle, sizeof(szTitle), m_PropertySheetState.wWmIndex) == TRUE)
+		if ((*m_pIniFile).IsWriteToJson() == TRUE)
 		{
-			memcpy(m_PropertySheetState.szWMName, szTitle, sizeof(szTitle));
-			TransferNameToHash(m_PropertySheetState.szWMName, m_PropertySheetState.szWMNameHash);
-			memcpy(m_pTempOemPrivateDevMode->scpi.ext2.stSubFavNames.szWMNameHash, m_PropertySheetState.szWMNameHash, sizeof(m_pTempOemPrivateDevMode->scpi.ext2.stSubFavNames.szWMNameHash));
+			if ((*m_pjsonwm).GetTitle(szTitle, sizeof(szTitle), m_PropertySheetState.wWmIndex) == TRUE)
+			{
+				memcpy(m_PropertySheetState.szWMName, szTitle, sizeof(szTitle));
+				TransferNameToHash(m_PropertySheetState.szWMName, m_PropertySheetState.szWMNameHash);
+				memcpy(m_pTempOemPrivateDevMode->scpi.ext2.stSubFavNames.szWMNameHash, m_PropertySheetState.szWMNameHash, sizeof(m_pTempOemPrivateDevMode->scpi.ext2.stSubFavNames.szWMNameHash));
+			}
+		}
+		else
+		{
+			if ((*pregwm).GetTitle(m_pPrinterName, szTitle, sizeof(szTitle), m_PropertySheetState.wWmIndex) == TRUE)
+			{
+				memcpy(m_PropertySheetState.szWMName, szTitle, sizeof(szTitle));
+				TransferNameToHash(m_PropertySheetState.szWMName, m_PropertySheetState.szWMNameHash);
+				memcpy(m_pTempOemPrivateDevMode->scpi.ext2.stSubFavNames.szWMNameHash, m_PropertySheetState.szWMNameHash, sizeof(m_pTempOemPrivateDevMode->scpi.ext2.stSubFavNames.szWMNameHash));
+			}
 		}
 	}
 //<E>To Implement Task #3114,13-09-2024,SSDI:Manoj S
@@ -1544,8 +1567,8 @@ void CWaterMarkDialog::GetWaterMarkRegistryObject(void)
 
 	/*CShJsonWm**/ m_pjsonwm = new CShJsonWm(ghInstance, m_pPrinterName, m_hStringResourceHandle);
 	m_pjsonwm->Init();
-	m_pWatermarkregdata->reset(m_pPrinterName, cshinifile);
-	BOOL checkjson = (*cshinifile).IsWriteToJson();
+
+	m_checkjson = (*cshinifile).IsWriteToJson();
 	if ((*cshinifile).IsWriteToJson() == TRUE)
 	{	// <S><A> 2023.12.28,To Fix feedback issue SSDI:Manoj S
 		if ((*m_pjsonwm).ReadCount() == 0)
@@ -1555,6 +1578,10 @@ void CWaterMarkDialog::GetWaterMarkRegistryObject(void)
 		}
 		// <E> 2023.12.28,To Fix feedback issue SSDI:Manoj S
 		//(*m_pjsonwm).SelectTheCorrectFavItem((*pext2).stSubFavNames.szWMNameHash, (*pps).wWmIndex);
+	}
+	else
+	{
+		m_pWatermarkregdata->reset(m_pPrinterName, cshinifile);
 	}
 	//<S><D>To Fix Bug #3689,20210520,SSDI:Chanchal Singla
 	//Following Line has moved in if Condition for fixing the redmine #3689
@@ -1571,7 +1598,7 @@ void CWaterMarkDialog::GetWaterMarkRegistryObject(void)
 		// copy watermark data from SCDM to m_WaterMarkData
 		//memcpy_s(&m_WaterMarkData, sizeof(WATERMARKDATA), &(m_pTempOemPrivateDevMode->scpi.ext.WaterMark), sizeof(WATERMARKDATA));
 		//memcpy_s(&m_WaterMarkData, sizeof(WATERMARKDATA), &(m_pTempOemPrivateDevMode->scpi.ext2.Watermark.data), sizeof(WATERMARKDATA));
-		if (checkjson)
+		if (m_checkjson)
 		{
 			BOOL wRet = m_pjsonwm->ReadWMData(m_pTempOemPrivateDevMode->scpi.ext.nWatermark, &m_WaterMarkData);
 			//<S><A>To Fix Bug #3882,20210603,SSDI:Chanchal Singla
@@ -1579,7 +1606,7 @@ void CWaterMarkDialog::GetWaterMarkRegistryObject(void)
 			if (wRet == FALSE)
 			{
 				m_PropertySheetState.wWmIndex = FALSE;
-				m_pjsonwm->GetWMDefData(m_PropertySheetState.wWmIndex, &m_WaterMarkData);
+				m_pjsonwm->GetWMDefDataEx(m_PropertySheetState.wWmIndex, &m_WaterMarkData,cshinifile);
 			}
 			else
 			{
@@ -1609,9 +1636,9 @@ void CWaterMarkDialog::GetWaterMarkRegistryObject(void)
 	//<E>To the Support of the EXT2 devmode in SCDM Stucture,20201104,SSDI:Chanchal Singla
 	else
 	{
-		if (checkjson)
+		if (m_checkjson)
 		{
-			m_pjsonwm->GetWMDefData(m_PropertySheetState.wWmIndex, &m_WaterMarkData);
+			m_pjsonwm->GetWMDefDataEx(m_PropertySheetState.wWmIndex, &m_WaterMarkData, cshinifile);
 		}
 		else
 		{
@@ -1947,8 +1974,11 @@ void CWaterMarkDialog::CreateMapElement(INT iMapKey, INT* iDependentControlIDs, 
 //=============================================================================
 LRESULT CWaterMarkDialog::OnComboboxSelectionChange(HWND hDlg)
 {
+	if(m_checkjson)
+		m_pjsonwm->ReadWMData(m_PropertySheetState.wWmIndex, &m_WaterMarkDataChanged);
+	else
+		m_pWatermarkregdata->ReadWMData(m_pPrinterName, m_PropertySheetState.wWmIndex, &m_WaterMarkDataChanged);
 
-	m_pWatermarkregdata->ReadWMData(m_pPrinterName, m_PropertySheetState.wWmIndex, &m_WaterMarkDataChanged);
 	memcpy_s(&m_WaterMarkData, sizeof(WATERMARKDATA), &m_WaterMarkDataChanged, sizeof(WATERMARKDATA));
 	WatermarkDataToPropState(&m_WaterMarkData);
 	if (0 == m_PropertySheetState.wWmIndex)
@@ -2079,8 +2109,8 @@ BOOL CWaterMarkDialog::OnWaterMarkDelete(HWND hDlg)
 		m_pjsonwm->DeleteData(m_PropertySheetState.wWmIndex);
 		m_pjsonwm->WriteJsonDataToFile();
 	}
-	//else
-	//{
+	else
+	{
 		m_pWatermarkregdata->ReadWMData(m_pPrinterName, m_PropertySheetState.wWmIndex, &m_WaterMarkDataChanged);
 		/*WCHAR szMessageTitle[768] = { 0 };*/
 		if (LoadString(m_hStringResourceHandle, IDS_MESTITLE_11, szMessageTitle, countof(szMessageTitle)) > 0)
@@ -2097,7 +2127,7 @@ BOOL CWaterMarkDialog::OnWaterMarkDelete(HWND hDlg)
 		}
 		//<S><C>To Implement Task#3114,13-09-2024,SSDI:Manoj S
 		m_pWatermarkregdata->DeleteData(m_PropertySheetState.wWmIndex);
-	//}
+	}
 
 	m_PropertySheetState.wWmIndex--;
 	OnComboboxSelectionChange(hDlg);
@@ -2286,22 +2316,22 @@ BOOL CWaterMarkDialog::AddWaterMark(SHORT sWaterMarkIndex, WCHAR* szTitle)
 	if ((*m_pIniFile).IsWriteToJson() == TRUE)
 	{
 		m_pjsonwm->WriteWMData(sWaterMarkIndex, &m_WaterMarkDataChanged, szTitle);
-		DWORD dwNumberOfWaterMarks = m_pjsonwm->ReadWMCount(m_pPrinterName);
+		DWORD dwNumberOfWaterMarks = m_pjsonwm->ReadCount();
 		if (sWaterMarkIndex == (SHORT)dwNumberOfWaterMarks)
 		{
 			m_pjsonwm->WriteWMCount(++dwNumberOfWaterMarks);
 		}
 		m_pjsonwm->WriteJsonDataToFile();
 	}
-	//else
-	//{
+	else
+	{
 		m_pWatermarkregdata->WriteWMData(m_pPrinterName, sWaterMarkIndex, &m_WaterMarkDataChanged, szTitle);
 		DWORD dwNumberOfWaterMarks = m_pWatermarkregdata->ReadWMCount(m_pPrinterName);
 		if (sWaterMarkIndex == (SHORT)dwNumberOfWaterMarks)
 		{
 			m_pWatermarkregdata->WriteWMCount(m_pPrinterName, ++dwNumberOfWaterMarks);
 		}
-	//}
+	}
 	m_PropertySheetState.wWmIndex = sWaterMarkIndex;
 	memcpy_s(&m_WaterMarkData, sizeof(WATERMARKDATA), &m_WaterMarkDataChanged, sizeof(WATERMARKDATA));
 	return TRUE;

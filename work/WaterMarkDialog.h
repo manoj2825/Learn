@@ -124,5 +124,6 @@ private:
 	BOOL								m_bIsWaterMarkDefaultClicked;
 	BOOL								m_blForceUpdate;
 	CShJsonWm*							m_pjsonwm;
+	BOOL								m_checkjson;
 };
 

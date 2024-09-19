@@ -237,7 +237,7 @@ LRESULT CWaterMarkAddDialog::OnIDOK(HWND hWnd, HWND hWndCtrl, WORD wCtrlID)
 	if ((*cshinifile).IsWriteToJson() == TRUE)
 	{
 
-		DWORD dwCountjson = jsonwm->ReadWMCount(GetPrinterName());
+		DWORD dwCountjson = jsonwm->ReadCount();
 		for (; dwWaterMarkIndex < dwCountjson; dwWaterMarkIndex++)
 		{
 			jsonwm->ReadWMData(dwWaterMarkIndex, &watermarkdata, szWaterMark, sizeof(szWaterMark));
@@ -249,8 +249,8 @@ LRESULT CWaterMarkAddDialog::OnIDOK(HWND hWnd, HWND hWndCtrl, WORD wCtrlID)
 			}
 		}
 	}
-	//else
-	//{
+	else
+	{
 		DWORD dwCount = m_pRegistryWaterMarkData->ReadWMCount(GetPrinterName());
 		for (; dwWaterMarkIndex < dwCount; dwWaterMarkIndex++)
 		{
@@ -262,7 +262,7 @@ LRESULT CWaterMarkAddDialog::OnIDOK(HWND hWnd, HWND hWndCtrl, WORD wCtrlID)
 				break;
 			}
 		}
-	//}
+	}
 	if(TRUE == bWaterMarkAlreadyExists)
 	{
 		WCHAR szMessage[MAX_PATH] ={ 0};
