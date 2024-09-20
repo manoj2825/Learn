@@ -498,7 +498,10 @@ HRESULT CWaterMarkDialog::SetTabDefaults(_In_ CONST INT   iCtrlID, _In_ CONST HW
 	MFPPrinterUI_Logger slog(__FUNCTION__"\n");
 	HRESULT hr = S_OK;
 
-	m_pWatermarkregdata->ReadWMData(m_pPrinterName, 0 ,&m_WaterMarkData);
+	if (m_checkjson)
+		m_pjsonwm->ReadWMData(0, &m_WaterMarkData);
+	else
+		m_pWatermarkregdata->ReadWMData(m_pPrinterName, 0 ,&m_WaterMarkData);
 
 	memcpy_s(&m_WaterMarkDataChanged, sizeof(WATERMARKDATA), &m_WaterMarkData, sizeof(WATERMARKDATA));
 	if (0 == m_PropertySheetState.wWmIndex)
@@ -1266,7 +1269,10 @@ LONG CWaterMarkDialog::QuerySaveWmChanges(HWND hDlg)
 			// Pass temporary WaterMarkData structure to read title only from registry.
 
 			WATERMARKDATA watermarkdata = { 0 };
-			m_pWatermarkregdata->ReadWMData(m_pPrinterName, m_PropertySheetState.wWmIndex, &watermarkdata, szWaterMark, sizeof(szWaterMark));
+			if (m_checkjson)
+				m_pjsonwm->ReadWMData(m_PropertySheetState.wWmIndex, &watermarkdata, szWaterMark, sizeof(szWaterMark));
+			else
+				m_pWatermarkregdata->ReadWMData(m_pPrinterName, m_PropertySheetState.wWmIndex, &watermarkdata, szWaterMark, sizeof(szWaterMark));
 
 		}
 		swprintf_s(szMessage, _countof(szMessage), szTemp, szWaterMark);
