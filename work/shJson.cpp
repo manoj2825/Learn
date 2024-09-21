@@ -195,7 +195,7 @@ BOOL CShJson::WriteJsonBinaryData(const WCHAR* pszKeyPath, const WCHAR* pszEntry
 	BOOL bRet = FALSE;
 	//string strHex;
 	std::wstring strHex;
-	std::string tempstr(strHex.begin(), strHex.end());
+	std::string tempstr;
 	if(pszKeyPath == NULL || pszEntry == NULL || pData == NULL || dwSize <= 0)
 		goto EXIT;
 
@@ -204,7 +204,7 @@ BOOL CShJson::WriteJsonBinaryData(const WCHAR* pszKeyPath, const WCHAR* pszEntry
 	}
 
 	strHex = BinarytoHexString((WCHAR *)pData, dwSize);
-
+	tempstr = std::string(strHex.begin(), strHex.end());
 	bRet = SetKeyPathNodeValue(pszKeyPath,pszEntry,Json::Value(tempstr));
 
 EXIT:

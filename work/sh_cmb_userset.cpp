@@ -241,6 +241,7 @@ HRESULT CShCmbUserset::OnInit(const INT iCtrlID, const HWND hDlg)
 	if ((*m_pmcf).IsWriteToJson() == TRUE)
 	{
 		pjsonus = new CShJsonUS(ghInstance, m_pPrinterName, m_hStringResourceHandle);
+		pjsonus->Init();
 		if (pjsonus == NULL)
 			goto EXIT;
 	}
@@ -499,6 +500,7 @@ HRESULT CShCmbUserset::OnInit(const INT iCtrlID, const HWND hDlg)
 
 		}
 
+		pjsonus->WriteJsonDataToFile();
 	
 		setLimitByOptionTbl();
 		

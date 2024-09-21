@@ -153,8 +153,8 @@ BOOL CShJsonUS::reset(PSCDM pscdm, PFEATUREINFOLIST pFeatureInfoList, PGPDFEATUR
 {
 	BOOL			blRet = FALSE;
 
-	WCHAR FAR		*pszTitle = NULL;
-
+	//WCHAR FAR		*pszTitle = NULL;
+	WCHAR			pszTitle[256] = {};
 	long			lRet = -1;
 
 	if (pscdm == NULL)
@@ -163,7 +163,8 @@ BOOL CShJsonUS::reset(PSCDM pscdm, PFEATUREINFOLIST pFeatureInfoList, PGPDFEATUR
 	// ================================================
 	// _/_/_/  初期化情報取得と書き込み
 	// ================================================
-	pszTitle = new WCHAR[(SCUI_TITLE_READ_MAX + 1) * 2];
+	//pszTitle = new WCHAR[(SCUI_TITLE_READ_MAX + 1) * 2];
+
 	if (pszTitle == NULL)
 		goto EXIT;
 
@@ -201,8 +202,8 @@ BOOL CShJsonUS::reset(PSCDM pscdm, PFEATUREINFOLIST pFeatureInfoList, PGPDFEATUR
 
 EXIT:
 
-	if (pszTitle != NULL)
-		delete[] pszTitle;
+	//if (pszTitle != NULL)
+	//	delete[] pszTitle;
 
 	return blRet;
 }
@@ -480,8 +481,9 @@ EXIT:
 BOOL CShJsonUS::WriteCount(DWORD dwCount)
 {
 	BOOL			blRet = FALSE;
-
-	blRet = WriteJsonDWORDData(JSON_KEY_US_ROOT_BASE, (const WCHAR*)JSON_ENT_US_COUNT, dwCount);
+	
+	//blRet = WriteJsonDWORDData(JSON_KEY_US_ROOT_BASE, (const WCHAR*)JSON_ENT_US_COUNT, dwCount);
+	blRet = WriteJsonDWORDData(JSON_KEY_US_ROOT_BASE, L"count", dwCount);
 		
 	blRet = TRUE;
 
@@ -725,7 +727,8 @@ DWORD CShJsonUS::ReadCount()
 	DWORD			dwData = 0;
 	
 	// --- count
-	blSuccess = ReadJsonDWORDData(JSON_KEY_US_ROOT_BASE, (const WCHAR*)JSON_ENT_US_COUNT, dwData);
+	//blSuccess = ReadJsonDWORDData(JSON_KEY_US_ROOT_BASE, (const WCHAR*)JSON_ENT_US_COUNT, dwData);
+	blSuccess = ReadJsonDWORDData(JSON_KEY_US_ROOT_BASE, L"count", dwData);
 
 	return dwData;
 }
@@ -5038,44 +5041,44 @@ long CShJsonUS::WriteDataJsonMS(long lIndex)
 {
 	long			lRet = -1;
 
-	CShJsonMS		*pjsonms = NULL;
-	DWORD			dwCount;
-	BOOL			blRet;
-	WCHAR FAR		*pszKey = NULL;
-
-	//if(CreateObj(scui_obj_ini_mcf) == FALSE)
-	//	goto EXIT;
-
-	pjsonms = new CShJsonMS(m_hInst, m_pszSvrPrnName);
-	if(pjsonms == NULL)
-		goto EXIT;
-
-	pjsonms->SetParent(this);
-
-	dwCount = (*pjsonms).ReadMSCount();
-	if(dwCount == 0)
-		goto EXIT;
-
-	if(lIndex == 0){
-		blRet = (*pjsonms).resetExToUs(lIndex);
-	}
-	else{
-		pszKey = new WCHAR[SCUI_REGKEYSIZE];
-		if(pszKey == NULL)
-			goto EXIT;
-
-		SecureZeroMemory(pszKey, SCUI_REGKEYSIZE);
-
-		::wsprintf(pszKey, JSON_KEY_MS_ROOT_BASE_US, lIndex);
-		CopyJsonTreeNode(pszKey,JSON_KEY_MS_ROOT_BASE);
-	}
-
-EXIT:
-	if(pjsonms != NULL)
-		delete pjsonms;
-
-	if(pszKey != NULL)
-		delete[] pszKey;
+//	CShJsonMS		*pjsonms = NULL;//soup
+//	DWORD			dwCount;
+//	BOOL			blRet;
+//	WCHAR FAR		*pszKey = NULL;
+//
+//	//if(CreateObj(scui_obj_ini_mcf) == FALSE)
+//	//	goto EXIT;
+//
+//	pjsonms = new CShJsonMS(m_hInst, m_pszSvrPrnName);
+//	if(pjsonms == NULL)
+//		goto EXIT;
+//
+//	pjsonms->SetParent(this);
+//
+//	dwCount = (*pjsonms).ReadMSCount();
+//	if(dwCount == 0)
+//		goto EXIT;
+//
+//	if(lIndex == 0){
+//		blRet = (*pjsonms).resetExToUs(lIndex);
+//	}
+//	else{
+//		pszKey = new WCHAR[SCUI_REGKEYSIZE];
+//		if(pszKey == NULL)
+//			goto EXIT;
+//
+//		SecureZeroMemory(pszKey, SCUI_REGKEYSIZE);
+//
+//		::wsprintf(pszKey, JSON_KEY_MS_ROOT_BASE_US, lIndex);
+//		CopyJsonTreeNode(pszKey,JSON_KEY_MS_ROOT_BASE);
+//	}
+//
+//EXIT:
+//	if(pjsonms != NULL)
+//		delete pjsonms;
+//
+//	if(pszKey != NULL)
+//		delete[] pszKey;
 
 	return lRet;
 }
@@ -5099,59 +5102,59 @@ long CShJsonUS::WriteDataJsonUPS(long lIndex)
 {
 	long			lRet = -1;
 
-	CShJsonUserPSize	*pjsonups = NULL;
-	DWORD			dwCount;
-	DWORD			dwCountMcf;
-	WCHAR FAR		*pszKey = NULL;
-		
-	//if(CreateObj(scui_obj_ini_mcf) == FALSE)
-	//	goto EXIT;
-
-	dwCountMcf = (DWORD)(*m_pmcf).GetLongArray(MCF_SEC_PROPSETTINGS, MCF_KEY_PROP_SUP_CUSTOM_PAPERSIZE);
-	if(dwCountMcf == 0)
-		goto EXIT;
-
-	pjsonups = new CShJsonUserPSize(m_hInst, m_pszSvrPrnName);
-	if(pjsonups == NULL)
-		goto EXIT;
-
-	pjsonups->SetParent(this);
-
-	if(lIndex == 0){
-		(*pjsonups).resetUs(lIndex);
-		//add to fix Custom paper default values when opened from json
-		dwCount = (*pjsonups).ReadUPSCount();
-		if(dwCount == 0)
-		{
-			(*pjsonups).reset();
-			dwCount = (*pjsonups).ReadUPSCount();
-		}
-	}
-	else{
-		dwCount = (*pjsonups).ReadUPSCount();
-		if(dwCount == 0)
-		{
-			(*pjsonups).reset();
-			dwCount = (*pjsonups).ReadUPSCount();
-		}
-
-		pszKey = new WCHAR[SCUI_REGKEYSIZE];
-		if(pszKey == NULL)
-			goto EXIT;
-
-		SecureZeroMemory(pszKey, SCUI_REGKEYSIZE);
-
-		::wsprintf(pszKey, JSON_KEY_UPS_ROOT_BASE_US, lIndex);
-		CopyJsonTreeNode(pszKey,JSON_KEY_UPS_ROOT_BASE);
-	}
-
-	lRet = lIndex;
-
-EXIT:
-	if(pjsonups != NULL)
-		delete pjsonups;
-	if(pszKey != NULL)
-		delete[] pszKey;
+//	CShJsonUserPSize	*pjsonups = NULL;//soup
+//	DWORD			dwCount;
+//	DWORD			dwCountMcf;
+//	WCHAR FAR		*pszKey = NULL;
+//		
+//	//if(CreateObj(scui_obj_ini_mcf) == FALSE)
+//	//	goto EXIT;
+//
+//	dwCountMcf = (DWORD)(*m_pmcf).GetLongArray(MCF_SEC_PROPSETTINGS, MCF_KEY_PROP_SUP_CUSTOM_PAPERSIZE);
+//	if(dwCountMcf == 0)
+//		goto EXIT;
+//
+//	pjsonups = new CShJsonUserPSize(m_hInst, m_pszSvrPrnName);
+//	if(pjsonups == NULL)
+//		goto EXIT;
+//
+//	pjsonups->SetParent(this);
+//
+//	if(lIndex == 0){
+//		(*pjsonups).resetUs(lIndex);
+//		//add to fix Custom paper default values when opened from json
+//		dwCount = (*pjsonups).ReadUPSCount();
+//		if(dwCount == 0)
+//		{
+//			(*pjsonups).reset();
+//			dwCount = (*pjsonups).ReadUPSCount();
+//		}
+//	}
+//	else{
+//		dwCount = (*pjsonups).ReadUPSCount();
+//		if(dwCount == 0)
+//		{
+//			(*pjsonups).reset();
+//			dwCount = (*pjsonups).ReadUPSCount();
+//		}
+//
+//		pszKey = new WCHAR[SCUI_REGKEYSIZE];
+//		if(pszKey == NULL)
+//			goto EXIT;
+//
+//		SecureZeroMemory(pszKey, SCUI_REGKEYSIZE);
+//
+//		::wsprintf(pszKey, JSON_KEY_UPS_ROOT_BASE_US, lIndex);
+//		CopyJsonTreeNode(pszKey,JSON_KEY_UPS_ROOT_BASE);
+//	}
+//
+//	lRet = lIndex;
+//
+//EXIT:
+//	if(pjsonups != NULL)
+//		delete pjsonups;
+//	if(pszKey != NULL)
+//		delete[] pszKey;
 	return lRet;
 }
 
@@ -5173,45 +5176,45 @@ EXIT:
 long CShJsonUS::WriteDataJsonPP(long lIndex)
 {
 	long			lRet = -1;
-
-	CShJsonPP		*pjsonpp = NULL;
-	DWORD			dwCount;
-	BOOL			blRet;
-	WCHAR FAR		*pszKey = NULL;
-
-	//if(CreateObj(scui_obj_ini_mcf) == FALSE)
-	//	goto EXIT;
-
-	pjsonpp = new CShJsonPP(m_hInst, m_pszSvrPrnName);
-	if(pjsonpp == NULL)
-		goto EXIT;
-
-	pjsonpp->SetParent(this);
-
-	dwCount = (*pjsonpp).ReadPPCount();
-	if(dwCount == 0)
-		goto EXIT;
-
-	if(lIndex == 0){
-		blRet = (*pjsonpp).resetToUs(lIndex);
-	}
-	else{
-		pszKey = new WCHAR[SCUI_REGKEYSIZE];
-		if(pszKey == NULL)
-			goto EXIT;
-
-		SecureZeroMemory(pszKey, SCUI_REGKEYSIZE);
-
-		::wsprintf(pszKey, JSON_KEY_PP_ROOT_BASE_US, lIndex);
-		CopyJsonTreeNode(pszKey,JSON_KEY_PP_ROOT_BASE);
-	}
-	lRet = lIndex;
-
-EXIT:
-	if(pjsonpp != NULL)
-		delete pjsonpp;
-	if(pszKey != NULL)
-		delete[] pszKey;
+//
+//	CShJsonPP		*pjsonpp = NULL;//soup
+//	DWORD			dwCount;
+//	BOOL			blRet;
+//	WCHAR FAR		*pszKey = NULL;
+//
+//	//if(CreateObj(scui_obj_ini_mcf) == FALSE)
+//	//	goto EXIT;
+//
+//	pjsonpp = new CShJsonPP(m_hInst, m_pszSvrPrnName);
+//	if(pjsonpp == NULL)
+//		goto EXIT;
+//
+//	pjsonpp->SetParent(this);
+//
+//	dwCount = (*pjsonpp).ReadPPCount();
+//	if(dwCount == 0)
+//		goto EXIT;
+//
+//	if(lIndex == 0){
+//		blRet = (*pjsonpp).resetToUs(lIndex);
+//	}
+//	else{
+//		pszKey = new WCHAR[SCUI_REGKEYSIZE];
+//		if(pszKey == NULL)
+//			goto EXIT;
+//
+//		SecureZeroMemory(pszKey, SCUI_REGKEYSIZE);
+//
+//		::wsprintf(pszKey, JSON_KEY_PP_ROOT_BASE_US, lIndex);
+//		CopyJsonTreeNode(pszKey,JSON_KEY_PP_ROOT_BASE);
+//	}
+//	lRet = lIndex;
+//
+//EXIT:
+//	if(pjsonpp != NULL)
+//		delete pjsonpp;
+//	if(pszKey != NULL)
+//		delete[] pszKey;
 	return lRet;
 }
 
@@ -5384,29 +5387,29 @@ EXIT:
 long CShJsonUS::WriteDataJsonSTRD(long lIndex)
 {
 	long			lRet = -1;
-	DWORD			dwFoldIndex = 0;
-	CShJsonStored		*pjson = NULL;
-	WCHAR			szSelFolderName[512];
-	DWORD			dwFolderSize = sizeof(szSelFolderName);
-	::ZeroMemory(szSelFolderName, dwFolderSize);	
-
-	pjson = new CShJsonStored(m_hInst, m_pszSvrPrnName);
-	if(pjson == NULL)
-		goto EXIT;
-
-	(*pjson).SetParent(this);
-
-	(*pjson).ReadSTDData(szSelFolderName, dwFolderSize);
-	dwFoldIndex = (*pjson).ReadLastSelectedFolderIndex();
-	if(szSelFolderName[0] != '\0')
-	{
-		(*pjson).WriteSTDDataToUs(lIndex, szSelFolderName, dwFolderSize,dwFoldIndex);
-		lRet = lIndex;
-	}
-
-EXIT:
-	if(pjson != NULL)
-		delete pjson;
+//	DWORD			dwFoldIndex = 0;//soup
+//	CShJsonStored		*pjson = NULL;
+//	WCHAR			szSelFolderName[512];
+//	DWORD			dwFolderSize = sizeof(szSelFolderName);
+//	::ZeroMemory(szSelFolderName, dwFolderSize);	
+//
+//	pjson = new CShJsonStored(m_hInst, m_pszSvrPrnName);
+//	if(pjson == NULL)
+//		goto EXIT;
+//
+//	(*pjson).SetParent(this);
+//
+//	(*pjson).ReadSTDData(szSelFolderName, dwFolderSize);
+//	dwFoldIndex = (*pjson).ReadLastSelectedFolderIndex();
+//	if(szSelFolderName[0] != '\0')
+//	{
+//		(*pjson).WriteSTDDataToUs(lIndex, szSelFolderName, dwFolderSize,dwFoldIndex);
+//		lRet = lIndex;
+//	}
+//
+//EXIT:
+//	if(pjson != NULL)
+//		delete pjson;
 
 	return lRet;
 }
@@ -5470,43 +5473,43 @@ long CShJsonUS::ReadDataJsonMS(long lIndex)
 {
 	long			lRet = -1;
 
-	CShJsonMS		*pjsonms = NULL;
-	DWORD			dwCount;
-	WCHAR FAR		*pszKey = NULL;
-
-	//(CreateObj(scui_obj_ini_mcf) == FALSE)
-	//	goto EXIT;
-
-	pjsonms = new CShJsonMS(m_hInst, m_pszSvrPrnName);
-	if(pjsonms == NULL)
-		goto EXIT;
-
-	pjsonms->SetParent(this);
-	
-	dwCount = (*pjsonms).ReadMSCount(JSON_KEY_MS_ROOT_BASE_US, lIndex);
-	if(dwCount == 0)
-	{
-		(*pjsonms).resetEx();
-		lRet = lIndex;
-		goto EXIT;
-	}
-
-	pszKey = new WCHAR[SCUI_REGKEYSIZE];
-	if(pszKey == NULL)
-		goto EXIT;
-
-	SecureZeroMemory(pszKey, SCUI_REGKEYSIZE);
-
-	::wsprintf(pszKey, JSON_KEY_MS_ROOT_BASE_US, lIndex);
-	CopyJsonTreeNode(JSON_KEY_MS_ROOT_BASE,pszKey);
-
-	lRet = lIndex;
-
-EXIT:
-	if(pjsonms != NULL)
-		delete pjsonms;
-	if(pszKey != NULL)
-		delete[] pszKey;
+//	CShJsonMS		*pjsonms = NULL;//soup
+//	DWORD			dwCount;
+//	WCHAR FAR		*pszKey = NULL;
+//
+//	//(CreateObj(scui_obj_ini_mcf) == FALSE)
+//	//	goto EXIT;
+//
+//	pjsonms = new CShJsonMS(m_hInst, m_pszSvrPrnName);
+//	if(pjsonms == NULL)
+//		goto EXIT;
+//
+//	pjsonms->SetParent(this);
+//	
+//	dwCount = (*pjsonms).ReadMSCount(JSON_KEY_MS_ROOT_BASE_US, lIndex);
+//	if(dwCount == 0)
+//	{
+//		(*pjsonms).resetEx();
+//		lRet = lIndex;
+//		goto EXIT;
+//	}
+//
+//	pszKey = new WCHAR[SCUI_REGKEYSIZE];
+//	if(pszKey == NULL)
+//		goto EXIT;
+//
+//	SecureZeroMemory(pszKey, SCUI_REGKEYSIZE);
+//
+//	::wsprintf(pszKey, JSON_KEY_MS_ROOT_BASE_US, lIndex);
+//	CopyJsonTreeNode(JSON_KEY_MS_ROOT_BASE,pszKey);
+//
+//	lRet = lIndex;
+//
+//EXIT:
+//	if(pjsonms != NULL)
+//		delete pjsonms;
+//	if(pszKey != NULL)
+//		delete[] pszKey;
 
 	return lRet;
 }
@@ -5530,46 +5533,46 @@ long CShJsonUS::ReadDataJsonUPS(long lIndex)
 {
 	long			lRet = -1;
 
-	short			wBy = 1;
-	WCHAR FAR		*pszKey = NULL;
-
-	CShJsonUserPSize	*pjsonups = NULL;
-	DWORD			dwCount;
-	DWORD			dwCountMcf;
-		
-	/*if(CreateObj(scui_obj_ini_mcf) == FALSE)
-		goto EXIT;*/
-
-	dwCountMcf = (DWORD)(*m_pmcf).GetLongArray(MCF_SEC_PROPSETTINGS, MCF_KEY_PROP_SUP_CUSTOM_PAPERSIZE);
-	if(dwCountMcf == 0)
-		goto EXIT;
-
-	pjsonups = new CShJsonUserPSize(m_hInst, m_pszSvrPrnName);
-	if(pjsonups == NULL)
-		goto EXIT;
-
-	pjsonups->SetParent(this);
-
-	dwCount = (*pjsonups).ReadUPSCount(JSON_KEY_UPS_ROOT_BASE_US, lIndex);
-	if(dwCount == 0)
-		goto EXIT;
-		
-	pszKey = new WCHAR[SCUI_REGKEYSIZE];
-	if(pszKey == NULL)
-		goto EXIT;
-
-	SecureZeroMemory(pszKey, SCUI_REGKEYSIZE);
-
-	::wsprintf(pszKey, JSON_KEY_UPS_ROOT_BASE_US, lIndex);
-	CopyJsonTreeNode(JSON_KEY_UPS_ROOT_BASE,pszKey);
-
-	lRet = lIndex;
-
-EXIT:
-	if(pjsonups != NULL)
-		delete pjsonups;
-	if(pszKey != NULL)
-		delete[] pszKey;
+//	short			wBy = 1;
+//	WCHAR FAR		*pszKey = NULL;//soup
+//
+//	CShJsonUserPSize	*pjsonups = NULL;
+//	DWORD			dwCount;
+//	DWORD			dwCountMcf;
+//		
+//	/*if(CreateObj(scui_obj_ini_mcf) == FALSE)
+//		goto EXIT;*/
+//
+//	dwCountMcf = (DWORD)(*m_pmcf).GetLongArray(MCF_SEC_PROPSETTINGS, MCF_KEY_PROP_SUP_CUSTOM_PAPERSIZE);
+//	if(dwCountMcf == 0)
+//		goto EXIT;
+//
+//	pjsonups = new CShJsonUserPSize(m_hInst, m_pszSvrPrnName);
+//	if(pjsonups == NULL)
+//		goto EXIT;
+//
+//	pjsonups->SetParent(this);
+//
+//	dwCount = (*pjsonups).ReadUPSCount(JSON_KEY_UPS_ROOT_BASE_US, lIndex);
+//	if(dwCount == 0)
+//		goto EXIT;
+//		
+//	pszKey = new WCHAR[SCUI_REGKEYSIZE];
+//	if(pszKey == NULL)
+//		goto EXIT;
+//
+//	SecureZeroMemory(pszKey, SCUI_REGKEYSIZE);
+//
+//	::wsprintf(pszKey, JSON_KEY_UPS_ROOT_BASE_US, lIndex);
+//	CopyJsonTreeNode(JSON_KEY_UPS_ROOT_BASE,pszKey);
+//
+//	lRet = lIndex;
+//
+//EXIT:
+//	if(pjsonups != NULL)
+//		delete pjsonups;
+//	if(pszKey != NULL)
+//		delete[] pszKey;
 	return lRet;
 }
 
@@ -5592,39 +5595,39 @@ long CShJsonUS::ReadDataJsonPP(long lIndex)
 {
 	long			lRet = -1;
 
-	CShJsonPP		*pjsonpp = NULL;
-	DWORD			dwCount;
-	WCHAR FAR		*pszKey = NULL;
-		
-	////if(CreateObj(scui_obj_ini_mcf) == FALSE)
-	//	goto EXIT;
-
-	pjsonpp = new CShJsonPP(m_hInst, m_pszSvrPrnName);
-	if(pjsonpp == NULL)
-		goto EXIT;
-
-	pjsonpp->SetParent(this);
-	
-	dwCount = (*pjsonpp).ReadPPCount(JSON_KEY_PP_ROOT_BASE_US, lIndex);
-	if(dwCount == 0)
-		goto EXIT;
-
-	pszKey = new WCHAR[SCUI_REGKEYSIZE];
-	if(pszKey == NULL)
-		goto EXIT;
-
-	SecureZeroMemory(pszKey, SCUI_REGKEYSIZE);
-
-	::wsprintf(pszKey, JSON_KEY_PP_ROOT_BASE_US, lIndex);
-	CopyJsonTreeNode(JSON_KEY_PP_ROOT_BASE,pszKey);
-	
-	lRet = lIndex;
-
-EXIT:
-	if(pjsonpp != NULL)
-		delete pjsonpp;
-	if(pszKey != NULL)
-		delete[] pszKey;
+//	CShJsonPP		*pjsonpp = NULL;//soup
+//	DWORD			dwCount;
+//	WCHAR FAR		*pszKey = NULL;
+//		
+//	////if(CreateObj(scui_obj_ini_mcf) == FALSE)
+//	//	goto EXIT;
+//
+//	pjsonpp = new CShJsonPP(m_hInst, m_pszSvrPrnName);
+//	if(pjsonpp == NULL)
+//		goto EXIT;
+//
+//	pjsonpp->SetParent(this);
+//	
+//	dwCount = (*pjsonpp).ReadPPCount(JSON_KEY_PP_ROOT_BASE_US, lIndex);
+//	if(dwCount == 0)
+//		goto EXIT;
+//
+//	pszKey = new WCHAR[SCUI_REGKEYSIZE];
+//	if(pszKey == NULL)
+//		goto EXIT;
+//
+//	SecureZeroMemory(pszKey, SCUI_REGKEYSIZE);
+//
+//	::wsprintf(pszKey, JSON_KEY_PP_ROOT_BASE_US, lIndex);
+//	CopyJsonTreeNode(JSON_KEY_PP_ROOT_BASE,pszKey);
+//	
+//	lRet = lIndex;
+//
+//EXIT:
+//	if(pjsonpp != NULL)
+//		delete pjsonpp;
+//	if(pszKey != NULL)
+//		delete[] pszKey;
 	return lRet;
 }
 
@@ -5790,36 +5793,36 @@ EXIT:
 long CShJsonUS::ReadDataJsonSTRD(long lIndex)
 {
 	long			lRet = -1;
-	BOOL			blRet = FALSE;
-	DWORD			dwFoldIndex = 0;
-	CShJsonStored		*pjson = NULL;
-	WCHAR			szSelFolderName[512];
-	DWORD			dwFolderSize = sizeof(szSelFolderName);
-	::ZeroMemory(szSelFolderName,dwFolderSize);	
-
-	pjson = new CShJsonStored(m_hInst, m_pszSvrPrnName);
-	if(pjson == NULL)
-		goto EXIT;
-
-	(*pjson).SetParent(this);
-
-	blRet = (*pjson).ReadSTDDataToUs(lIndex, szSelFolderName, dwFolderSize,dwFoldIndex);
-	if(!blRet)
-		goto EXIT;
-
-	if(szSelFolderName[0] != '\0')
-	{	
-		blRet = (*pjson).WriteSTDData(szSelFolderName, dwFolderSize);
-		blRet = (*pjson).WriteLastSelectedFolderIndex(dwFoldIndex);
-		if(!blRet)
-			goto EXIT;
-	}
-
-	lRet = lIndex;
-
-EXIT:
-	if(pjson != NULL)
-		delete pjson;
+//	BOOL			blRet = FALSE;//soup
+//	DWORD			dwFoldIndex = 0;
+//	CShJsonStored		*pjson = NULL;
+//	WCHAR			szSelFolderName[512];
+//	DWORD			dwFolderSize = sizeof(szSelFolderName);
+//	::ZeroMemory(szSelFolderName,dwFolderSize);	
+//
+//	pjson = new CShJsonStored(m_hInst, m_pszSvrPrnName);
+//	if(pjson == NULL)
+//		goto EXIT;
+//
+//	(*pjson).SetParent(this);
+//
+//	blRet = (*pjson).ReadSTDDataToUs(lIndex, szSelFolderName, dwFolderSize,dwFoldIndex);
+//	if(!blRet)
+//		goto EXIT;
+//
+//	if(szSelFolderName[0] != '\0')
+//	{	
+//		blRet = (*pjson).WriteSTDData(szSelFolderName, dwFolderSize);
+//		blRet = (*pjson).WriteLastSelectedFolderIndex(dwFoldIndex);
+//		if(!blRet)
+//			goto EXIT;
+//	}
+//
+//	lRet = lIndex;
+//
+//EXIT:
+//	if(pjson != NULL)
+//		delete pjson;
 
 	return lRet;
 }
@@ -6446,8 +6449,9 @@ EXIT:
 //=============================================================================
 DWORD CShJsonUS::ReadUSMSData(WCHAR  *pszSvrPrnName, long lIndex, BYTE* pMSData)
 {
-	CShJsonMS		*pjsonms = NULL;
 	DWORD			dwSize = 0;
+	/*CShJsonMS		*pjsonms = NULL;
+	
 	DWORD			dwMSCount = 0;
 	BYTE			*pMSDataTmp = NULL;
 	DWORD			i = 0;
@@ -6486,7 +6490,7 @@ DWORD CShJsonUS::ReadUSMSData(WCHAR  *pszSvrPrnName, long lIndex, BYTE* pMSData)
 
 EXIT:
 	if(pjsonms != NULL)
-		delete pjsonms;
+		delete pjsonms;*///soup
 
 	return dwSize;
 }
@@ -6512,54 +6516,54 @@ long CShJsonUS::WriteShareDataMSToUS(WCHAR  *pszSvrPrnName, long lIndex, BYTE* p
 {
 	long			lRet = -1;
 
-	CShJsonMS		*pjsonms = NULL;
-	MARGINSHIFTDATA	msd;
-	DWORD			dwCount;
-	DWORD			dwDataSize;
-	DWORD			i;
-	BYTE			*pMSDataTmp = NULL;
-		
-	// ================================================
-	// _/_/_/  パラメータチェック
-	// ================================================
-	if(pszSvrPrnName == NULL)
-		goto EXIT;
-
-	if(pMSData == NULL || dwSize <= 0)
-		goto EXIT;
-
-	pjsonms = new CShJsonMS(m_hInst, pszSvrPrnName);
-	if(pjsonms == NULL)
-		goto EXIT;
-
-	pjsonms->SetParent(this);
-
-	pMSDataTmp = pMSData;
-	memcpy(&dwCount,pMSDataTmp,sizeof(dwCount));
-	if(dwCount == 0)
-		goto EXIT;
-	
-	pMSDataTmp += sizeof(dwCount);
-
-	dwDataSize = sizeof(dwCount) + dwCount * sizeof(MARGINSHIFTDATA);
-	if(dwSize != dwDataSize)
-		goto EXIT;
-
-	for(i=0; i < dwCount; i++)
-	{
-		memset(&msd, 0, sizeof(msd));
-		memcpy(&msd,pMSDataTmp,sizeof(MARGINSHIFTDATA));
-
-		(*pjsonms).WriteMSDataToUs(lIndex, i, &msd);
-		pMSDataTmp += sizeof(MARGINSHIFTDATA);
-	}
-		
-	(*pjsonms).WriteMSCount(JSON_KEY_MS_ROOT_BASE_US, lIndex, dwCount);
-	lRet = lIndex;
-
-EXIT:
-	if(pjsonms != NULL)
-		delete pjsonms;
+//	CShJsonMS		*pjsonms = NULL;
+//	MARGINSHIFTDATA	msd;
+//	DWORD			dwCount;
+//	DWORD			dwDataSize;
+//	DWORD			i;
+//	BYTE			*pMSDataTmp = NULL;
+//		
+//	// ================================================
+//	// _/_/_/  パラメータチェック
+//	// ================================================
+//	if(pszSvrPrnName == NULL)
+//		goto EXIT;
+//
+//	if(pMSData == NULL || dwSize <= 0)
+//		goto EXIT;
+//
+//	pjsonms = new CShJsonMS(m_hInst, pszSvrPrnName);
+//	if(pjsonms == NULL)
+//		goto EXIT;
+//
+//	pjsonms->SetParent(this);
+//
+//	pMSDataTmp = pMSData;
+//	memcpy(&dwCount,pMSDataTmp,sizeof(dwCount));
+//	if(dwCount == 0)
+//		goto EXIT;
+//	
+//	pMSDataTmp += sizeof(dwCount);
+//
+//	dwDataSize = sizeof(dwCount) + dwCount * sizeof(MARGINSHIFTDATA);
+//	if(dwSize != dwDataSize)
+//		goto EXIT;
+//
+//	for(i=0; i < dwCount; i++)
+//	{
+//		memset(&msd, 0, sizeof(msd));
+//		memcpy(&msd,pMSDataTmp,sizeof(MARGINSHIFTDATA));
+//
+//		(*pjsonms).WriteMSDataToUs(lIndex, i, &msd);
+//		pMSDataTmp += sizeof(MARGINSHIFTDATA);
+//	}
+//		
+//	(*pjsonms).WriteMSCount(JSON_KEY_MS_ROOT_BASE_US, lIndex, dwCount);
+//	lRet = lIndex;
+//
+//EXIT:
+//	if(pjsonms != NULL)
+//		delete pjsonms;//soup
 
 	return lRet;
 }
@@ -6582,48 +6586,48 @@ EXIT:
 //=============================================================================
 DWORD CShJsonUS::ReadUSSTRData(WCHAR  *pszSvrPrnName, long lIndex, BYTE* pSTRData)
 {
-	CShJsonStored 	*pjsonstrd;
+	//CShJsonStored 	*pjsonstrd;
 	DWORD			dwSize = 0;
-	BOOL			blRet = FALSE;
-	BYTE			*pSTRDataTmp = NULL;
-	DWORD			dwFoldIndex = 0;
-	WCHAR			szSelFolderName[512];
-	STORED_TO_DATA	strd;
-	DWORD			dwFolderSize = sizeof(szSelFolderName);
-
-	if(pszSvrPrnName == NULL)
-		goto EXIT;
-	
-	pjsonstrd = new CShJsonStored(m_hInst, pszSvrPrnName);
-	if(pjsonstrd == NULL)
-		goto EXIT;
-
-	pjsonstrd->SetParent(this);
-
-	dwSize = sizeof(STORED_TO_DATA);			
-	if(pSTRData == NULL)
-	{
-		goto EXIT;
-	}
-
-	pSTRDataTmp = pSTRData;
-
-	memset(&strd, 0, sizeof(strd));
- 	blRet = (*pjsonstrd).ReadSTDDataToUs(lIndex, szSelFolderName, dwFolderSize,dwFoldIndex);
-	if(!blRet)
-		goto EXIT;
-
-	    wcsncpy(strd.pszFolderName, szSelFolderName, sizeof(strd.pszFolderName) - 1);
-		strd.pszFolderName[sizeof(strd.pszFolderName) - 1] = '\0'; // Null-terminate the string
-
-		strd.dwFolderIndex = dwFoldIndex;
-		memcpy(pSTRDataTmp, &strd, sizeof(STORED_TO_DATA));
-		pSTRDataTmp += sizeof(STORED_TO_DATA);
-
-
-EXIT:
-	if(pjsonstrd != NULL)
-		delete pjsonstrd;
+//	BOOL			blRet = FALSE;
+//	BYTE			*pSTRDataTmp = NULL;
+//	DWORD			dwFoldIndex = 0;
+//	WCHAR			szSelFolderName[512];
+//	STORED_TO_DATA	strd;
+//	DWORD			dwFolderSize = sizeof(szSelFolderName);
+//
+//	if(pszSvrPrnName == NULL)
+//		goto EXIT;
+//	
+//	pjsonstrd = new CShJsonStored(m_hInst, pszSvrPrnName);
+//	if(pjsonstrd == NULL)
+//		goto EXIT;
+//
+//	pjsonstrd->SetParent(this);
+//
+//	dwSize = sizeof(STORED_TO_DATA);			
+//	if(pSTRData == NULL)
+//	{
+//		goto EXIT;
+//	}
+//
+//	pSTRDataTmp = pSTRData;
+//
+//	memset(&strd, 0, sizeof(strd));
+// 	blRet = (*pjsonstrd).ReadSTDDataToUs(lIndex, szSelFolderName, dwFolderSize,dwFoldIndex);
+//	if(!blRet)
+//		goto EXIT;
+//
+//	    wcsncpy(strd.pszFolderName, szSelFolderName, sizeof(strd.pszFolderName) - 1);
+//		strd.pszFolderName[sizeof(strd.pszFolderName) - 1] = '\0'; // Null-terminate the string
+//
+//		strd.dwFolderIndex = dwFoldIndex;
+//		memcpy(pSTRDataTmp, &strd, sizeof(STORED_TO_DATA));
+//		pSTRDataTmp += sizeof(STORED_TO_DATA);
+//
+//
+//EXIT:
+//	if(pjsonstrd != NULL)
+//		delete pjsonstrd;//soup
 
 	return dwSize;
 }
@@ -6648,47 +6652,47 @@ EXIT:
 long CShJsonUS::WriteShareDataSTRToUS(WCHAR  *pszSvrPrnName, long lIndex, BYTE* pSTRData, DWORD dwSize)
 {
 	long			lRet = -1;
-	CShJsonStored 	*pjsonstrd = NULL;
-	STORED_TO_DATA	strd;
-	DWORD			dwCount;
-	DWORD			dwDataSize;
-	DWORD			i;
-	BYTE			*pSTRDataTmp = NULL;
-		
-	// ================================================
-	// _/_/_/  パラメータチェック
-	// ================================================
-	if(pszSvrPrnName == NULL)
-		goto EXIT;
-
-	if(pSTRData == NULL || dwSize <= 0)
-		goto EXIT;
-
-	pjsonstrd = new CShJsonStored(m_hInst, pszSvrPrnName);
-	if(pjsonstrd == NULL)
-		goto EXIT;
-
-	pjsonstrd->SetParent(this);
-
-	pSTRDataTmp = pSTRData;
-
-
-	dwDataSize = sizeof(STORED_TO_DATA);
-	if(dwSize != dwDataSize)
-		goto EXIT;
-
-	memset(&strd, 0, sizeof(strd));
-	memcpy(&strd,pSTRDataTmp,sizeof(STORED_TO_DATA));
-
-
-	(*pjsonstrd).WriteSTDDataToUs(lIndex, strd.pszFolderName, sizeof(strd.pszFolderName),strd.dwFolderIndex);
-	lRet = lIndex;
-	pSTRDataTmp += sizeof(STORED_TO_DATA);
-	lRet = lIndex;
-
-EXIT:
-	if(pjsonstrd != NULL)
-		delete pjsonstrd;
+//	CShJsonStored 	*pjsonstrd = NULL;
+//	STORED_TO_DATA	strd;
+//	DWORD			dwCount;
+//	DWORD			dwDataSize;
+//	DWORD			i;
+//	BYTE			*pSTRDataTmp = NULL;
+//		
+//	// ================================================
+//	// _/_/_/  パラメータチェック
+//	// ================================================
+//	if(pszSvrPrnName == NULL)
+//		goto EXIT;
+//
+//	if(pSTRData == NULL || dwSize <= 0)
+//		goto EXIT;
+//
+//	pjsonstrd = new CShJsonStored(m_hInst, pszSvrPrnName);
+//	if(pjsonstrd == NULL)
+//		goto EXIT;
+//
+//	pjsonstrd->SetParent(this);
+//
+//	pSTRDataTmp = pSTRData;
+//
+//
+//	dwDataSize = sizeof(STORED_TO_DATA);
+//	if(dwSize != dwDataSize)
+//		goto EXIT;
+//
+//	memset(&strd, 0, sizeof(strd));
+//	memcpy(&strd,pSTRDataTmp,sizeof(STORED_TO_DATA));
+//
+//
+//	(*pjsonstrd).WriteSTDDataToUs(lIndex, strd.pszFolderName, sizeof(strd.pszFolderName),strd.dwFolderIndex);
+//	lRet = lIndex;
+//	pSTRDataTmp += sizeof(STORED_TO_DATA);
+//	lRet = lIndex;
+//
+//EXIT:
+//	if(pjsonstrd != NULL)
+//		delete pjsonstrd;//soup
 
 	return lRet;
 }
@@ -6711,49 +6715,50 @@ EXIT:
 //=============================================================================
 DWORD CShJsonUS::ReadStoredToData(WCHAR  *pszSvrPrnName, long lIndex, BYTE* pSTRJCData)
 {
-	CShJsonStored 	*pjsonstrd = NULL;
-	DWORD			dwSize = 0;
-	DWORD			dwSTRJCCount = 0;
-	BYTE			*pSTRJCDataTmp = NULL;
-	DWORD			i = 0;
-	BOOL			blSuccess = FALSE;
-	STORED_TO_DATA_printui strdjc;
+		DWORD			dwSize = 0;
+//	CShJsonStored 	*pjsonstrd = NULL;
 
-	if(pszSvrPrnName == NULL)
-		goto EXIT;
-	
-	pjsonstrd = new CShJsonStored(m_hInst, pszSvrPrnName);
-	if(pjsonstrd == NULL)
-		goto EXIT;
-
-	pjsonstrd->SetParent(this);
-
-	//dwSTRJCCount = (*pjsonstrd).ReadMSCount(JSON_KEY_MS_ROOT_BASE_US, lIndex);
-	blSuccess = m_pParent->ReadJsonDWORDData(JSON_KEY_STRD_ROOT_BASE, JSON_ENT_STRD_COUNT, dwSTRJCCount);
-	if(dwSTRJCCount == 0)
-		goto EXIT;
-
-	dwSize = sizeof(dwSTRJCCount) + dwSTRJCCount * sizeof(STORED_TO_DATA_printui);			
-	if(pSTRJCData == NULL)
-	{
-		goto EXIT;
-	}
-
-	pSTRJCDataTmp = pSTRJCData;
-	memcpy(pSTRJCDataTmp,&dwSTRJCCount,sizeof(dwSTRJCCount));
-	pSTRJCDataTmp += sizeof(dwSTRJCCount);
-
-	for(i = 0; i < dwSTRJCCount; i++)
-	{
-		memset(&strdjc, 0, sizeof(strdjc));
-		(*pjsonstrd).ReadStrdData(i, strdjc.FolderName, sizeof(strdjc.FolderName), &strdjc.HasFolderPin);
-		memcpy(pSTRJCDataTmp,&strdjc,sizeof(STORED_TO_DATA_printui));
-		pSTRJCDataTmp += sizeof(STORED_TO_DATA_printui);
-	}
-
-EXIT:
-	if(pjsonstrd != NULL)
-		delete pjsonstrd;
+//	DWORD			dwSTRJCCount = 0;
+//	BYTE			*pSTRJCDataTmp = NULL;
+//	DWORD			i = 0;
+//	BOOL			blSuccess = FALSE;
+//	STORED_TO_DATA_printui strdjc;
+//
+//	if(pszSvrPrnName == NULL)
+//		goto EXIT;
+//	
+//	pjsonstrd = new CShJsonStored(m_hInst, pszSvrPrnName);
+//	if(pjsonstrd == NULL)
+//		goto EXIT;
+//
+//	pjsonstrd->SetParent(this);
+//
+//	//dwSTRJCCount = (*pjsonstrd).ReadMSCount(JSON_KEY_MS_ROOT_BASE_US, lIndex);
+//	blSuccess = m_pParent->ReadJsonDWORDData(JSON_KEY_STRD_ROOT_BASE, JSON_ENT_STRD_COUNT, dwSTRJCCount);
+//	if(dwSTRJCCount == 0)
+//		goto EXIT;
+//
+//	dwSize = sizeof(dwSTRJCCount) + dwSTRJCCount * sizeof(STORED_TO_DATA_printui);			
+//	if(pSTRJCData == NULL)
+//	{
+//		goto EXIT;
+//	}
+//
+//	pSTRJCDataTmp = pSTRJCData;
+//	memcpy(pSTRJCDataTmp,&dwSTRJCCount,sizeof(dwSTRJCCount));
+//	pSTRJCDataTmp += sizeof(dwSTRJCCount);
+//
+//	for(i = 0; i < dwSTRJCCount; i++)
+//	{
+//		memset(&strdjc, 0, sizeof(strdjc));
+//		(*pjsonstrd).ReadStrdData(i, strdjc.FolderName, sizeof(strdjc.FolderName), &strdjc.HasFolderPin);
+//		memcpy(pSTRJCDataTmp,&strdjc,sizeof(STORED_TO_DATA_printui));
+//		pSTRJCDataTmp += sizeof(STORED_TO_DATA_printui);
+//	}
+//
+//EXIT:
+//	if(pjsonstrd != NULL)
+//		delete pjsonstrd;//soup
 
 	return dwSize;
 }
@@ -6778,54 +6783,54 @@ EXIT:
 long CShJsonUS::WriteShareDataStoredToUS(WCHAR  *pszSvrPrnName, long lIndex, BYTE* pSTRJCData, DWORD dwSize)
 {
 	long			lRet = -1;
-	CShJsonStored 	*pjsonstrd = NULL;
-	STORED_TO_DATA_printui strdjc;
-	DWORD			dwSTRJCCount;
-	DWORD			dwDataSize;
-	DWORD			i;
-	BYTE			*pSTRJCDataTmp = NULL;
-		
-	// ================================================
-	// _/_/_/  パラメータチェック
-	// ================================================
-	if(pszSvrPrnName == NULL)
-		goto EXIT;
-
-	if(pSTRJCData == NULL || dwSize <= 0)
-		goto EXIT;
-
-	pjsonstrd = new CShJsonStored(m_hInst, pszSvrPrnName);
-	if(pjsonstrd == NULL)
-		goto EXIT;
-
-	pjsonstrd->SetParent(this);
-
-	pSTRJCDataTmp = pSTRJCData;
-	memcpy(&dwSTRJCCount,pSTRJCDataTmp,sizeof(dwSTRJCCount));
-	if(dwSTRJCCount == 0)
-		goto EXIT;
-	
-	pSTRJCDataTmp += sizeof(dwSTRJCCount);
-
-	dwDataSize = sizeof(dwSTRJCCount) + dwSTRJCCount * sizeof(STORED_TO_DATA_printui);
-	if(dwSize != dwDataSize)
-		goto EXIT;
-
-	for(i=0; i < dwSTRJCCount; i++)
-	{
-		memset(&strdjc, 0, sizeof(strdjc));
-		memcpy(&strdjc,pSTRJCDataTmp,sizeof(STORED_TO_DATA_printui));
-		(*pjsonstrd).WriteStrdData(i, strdjc.FolderName, strdjc.HasFolderPin);
-		pSTRJCDataTmp += sizeof(STORED_TO_DATA_printui);
-	}
-	
-	(*pjsonstrd).WriteStrdCount(dwSTRJCCount);
-
-	lRet = lIndex;
-
-EXIT:
-	if(pjsonstrd != NULL)
-		delete pjsonstrd;
+//	CShJsonStored 	*pjsonstrd = NULL;
+//	STORED_TO_DATA_printui strdjc;
+//	DWORD			dwSTRJCCount;
+//	DWORD			dwDataSize;
+//	DWORD			i;
+//	BYTE			*pSTRJCDataTmp = NULL;
+//		
+//	// ================================================
+//	// _/_/_/  パラメータチェック
+//	// ================================================
+//	if(pszSvrPrnName == NULL)
+//		goto EXIT;
+//
+//	if(pSTRJCData == NULL || dwSize <= 0)
+//		goto EXIT;
+//
+//	pjsonstrd = new CShJsonStored(m_hInst, pszSvrPrnName);
+//	if(pjsonstrd == NULL)
+//		goto EXIT;
+//
+//	pjsonstrd->SetParent(this);
+//
+//	pSTRJCDataTmp = pSTRJCData;
+//	memcpy(&dwSTRJCCount,pSTRJCDataTmp,sizeof(dwSTRJCCount));
+//	if(dwSTRJCCount == 0)
+//		goto EXIT;
+//	
+//	pSTRJCDataTmp += sizeof(dwSTRJCCount);
+//
+//	dwDataSize = sizeof(dwSTRJCCount) + dwSTRJCCount * sizeof(STORED_TO_DATA_printui);
+//	if(dwSize != dwDataSize)
+//		goto EXIT;
+//
+//	for(i=0; i < dwSTRJCCount; i++)
+//	{
+//		memset(&strdjc, 0, sizeof(strdjc));
+//		memcpy(&strdjc,pSTRJCDataTmp,sizeof(STORED_TO_DATA_printui));
+//		(*pjsonstrd).WriteStrdData(i, strdjc.FolderName, strdjc.HasFolderPin);
+//		pSTRJCDataTmp += sizeof(STORED_TO_DATA_printui);
+//	}
+//	
+//	(*pjsonstrd).WriteStrdCount(dwSTRJCCount);
+//
+//	lRet = lIndex;
+//
+//EXIT:
+//	if(pjsonstrd != NULL)
+//		delete pjsonstrd;//soup
 
 	return lRet;
 }
@@ -6848,60 +6853,61 @@ EXIT:
 //=============================================================================
 DWORD CShJsonUS::ReadUSUPSData(WCHAR  *pszSvrPrnName, long lIndex, BYTE* pUPSData)
 {
-	CShJsonUserPSize	*pjson = NULL;
 	DWORD			dwSize = 0;
-	DWORD			dwCount = 0;
-	DWORD			dwCountMcf;
-	long			*pl = NULL;
-	BYTE			*pDataTmp = NULL;
-	DWORD			i = 0;
-	USERPAPERSIZEDATA	upsd;
-
-	if(pszSvrPrnName == NULL)
-		goto EXIT;
-	
-	//if(CreateObj(scui_obj_ini_mcf) == FALSE)
-	//	goto EXIT;
-
-	dwCountMcf = (DWORD)(*m_pmcf).GetLongArray(MCF_SEC_PROPSETTINGS, MCF_KEY_PROP_SUP_CUSTOM_PAPERSIZE);
-	if(dwCountMcf == 0)
-		goto EXIT;
-
-	pl = (*m_pmcf).GetLongArrayData();
-
-	pjson = new CShJsonUserPSize(m_hInst, pszSvrPrnName);
-	if(pjson == NULL)
-		goto EXIT;
-
-	pjson->SetParent(this);
-
-	dwCount = (*pjson).ReadUPSCount(JSON_KEY_UPS_ROOT_BASE_US, lIndex);
-	if(dwCount == 0)
-		goto EXIT;
-
-	dwSize = sizeof(dwCount) + dwCount * sizeof(USERPAPERSIZEDATA);			
-	if(pUPSData == NULL)
-	{
-		goto EXIT;
-	}
-
-	pDataTmp = pUPSData;
-	memcpy(pDataTmp,&dwCount,sizeof(dwCount));
-	pDataTmp += sizeof(dwCount);
-
-	for(i=0; i < dwCount; i++)
-	{
-		memset(&upsd, 0, sizeof(upsd));
-		BOOL blRet = (*pjson).ReadUPSDataToUs(lIndex, pl[i], &upsd);
-		if(!blRet)
-			goto EXIT;
-		memcpy(pDataTmp,&upsd,sizeof(USERPAPERSIZEDATA));
-		pDataTmp += sizeof(USERPAPERSIZEDATA);
-	}
-
-EXIT:
-	if(pjson != NULL)
-		delete pjson;
+//	CShJsonUserPSize	*pjson = NULL;
+//	
+//	DWORD			dwCount = 0;
+//	DWORD			dwCountMcf;
+//	long			*pl = NULL;
+//	BYTE			*pDataTmp = NULL;
+//	DWORD			i = 0;
+//	USERPAPERSIZEDATA	upsd;
+//
+//	if(pszSvrPrnName == NULL)
+//		goto EXIT;
+//	
+//	//if(CreateObj(scui_obj_ini_mcf) == FALSE)
+//	//	goto EXIT;
+//
+//	dwCountMcf = (DWORD)(*m_pmcf).GetLongArray(MCF_SEC_PROPSETTINGS, MCF_KEY_PROP_SUP_CUSTOM_PAPERSIZE);
+//	if(dwCountMcf == 0)
+//		goto EXIT;
+//
+//	pl = (*m_pmcf).GetLongArrayData();
+//
+//	pjson = new CShJsonUserPSize(m_hInst, pszSvrPrnName);
+//	if(pjson == NULL)
+//		goto EXIT;
+//
+//	pjson->SetParent(this);
+//
+//	dwCount = (*pjson).ReadUPSCount(JSON_KEY_UPS_ROOT_BASE_US, lIndex);
+//	if(dwCount == 0)
+//		goto EXIT;
+//
+//	dwSize = sizeof(dwCount) + dwCount * sizeof(USERPAPERSIZEDATA);			
+//	if(pUPSData == NULL)
+//	{
+//		goto EXIT;
+//	}
+//
+//	pDataTmp = pUPSData;
+//	memcpy(pDataTmp,&dwCount,sizeof(dwCount));
+//	pDataTmp += sizeof(dwCount);
+//
+//	for(i=0; i < dwCount; i++)
+//	{
+//		memset(&upsd, 0, sizeof(upsd));
+//		BOOL blRet = (*pjson).ReadUPSDataToUs(lIndex, pl[i], &upsd);
+//		if(!blRet)
+//			goto EXIT;
+//		memcpy(pDataTmp,&upsd,sizeof(USERPAPERSIZEDATA));
+//		pDataTmp += sizeof(USERPAPERSIZEDATA);
+//	}
+//
+//EXIT:
+//	if(pjson != NULL)
+//		delete pjson;//soup
 
 	return dwSize;
 }
@@ -6927,66 +6933,66 @@ long CShJsonUS::WriteShareDataUPSToUS(WCHAR  *pszSvrPrnName, long lIndex, BYTE* 
 {
 	long			lRet = -1;
 
-	CShJsonUserPSize		*pjson = NULL;
-	USERPAPERSIZEDATA	upsd;
-	DWORD			dwCount;
-	DWORD			dwCountMcf;
-	long			*pl = NULL;
-	DWORD			dwDataSize;
-	DWORD			i;
-	BYTE			*pDataTmp = NULL;
-		
-	// ================================================
-	// _/_/_/  パラメータチェック
-	// ================================================
-	if(pszSvrPrnName == NULL)
-		goto EXIT;
-
-	if(pUPSData == NULL || dwSize <= 0)
-		goto EXIT;
-
-	/*if(CreateObj(scui_obj_ini_mcf) == FALSE)
-		goto EXIT;*/
-
-	dwCountMcf = (DWORD)(*m_pmcf).GetLongArray(MCF_SEC_PROPSETTINGS, MCF_KEY_PROP_SUP_CUSTOM_PAPERSIZE);
-	if(dwCountMcf == 0)
-		goto EXIT;
-
-	pl = (*m_pmcf).GetLongArrayData();
-
-	pjson = new CShJsonUserPSize(m_hInst, pszSvrPrnName);
-	if(pjson == NULL)
-		goto EXIT;
-
-	pjson->SetParent(this);
-	
-	pDataTmp = pUPSData;
-	memcpy(&dwCount,pDataTmp,sizeof(dwCount));
-	if(dwCount != dwCountMcf)
-		goto EXIT;
-	
-	pDataTmp += sizeof(dwCount);
-
-	dwDataSize = sizeof(dwCount) + dwCount * sizeof(USERPAPERSIZEDATA);
-	if(dwSize != dwDataSize)
-		goto EXIT;
-
-	for(i=0; i < dwCount; i++)
-	{
-		memset(&upsd, 0, sizeof(upsd));
-		memcpy(&upsd,pDataTmp,sizeof(USERPAPERSIZEDATA));
-
-		(*pjson).WriteUPSDataToUs(lIndex, pl[i], &upsd);
-		pDataTmp += sizeof(USERPAPERSIZEDATA);
-	}
-	
-	(*pjson).WriteUPSCount(JSON_KEY_UPS_ROOT_BASE_US, lIndex, dwCount);
-
-	lRet = lIndex;
-
-EXIT:
-	if(pjson != NULL)
-		delete pjson;
+//	CShJsonUserPSize		*pjson = NULL;
+//	USERPAPERSIZEDATA	upsd;
+//	DWORD			dwCount;
+//	DWORD			dwCountMcf;
+//	long			*pl = NULL;
+//	DWORD			dwDataSize;
+//	DWORD			i;
+//	BYTE			*pDataTmp = NULL;
+//		
+//	// ================================================
+//	// _/_/_/  パラメータチェック
+//	// ================================================
+//	if(pszSvrPrnName == NULL)
+//		goto EXIT;
+//
+//	if(pUPSData == NULL || dwSize <= 0)
+//		goto EXIT;
+//
+//	/*if(CreateObj(scui_obj_ini_mcf) == FALSE)
+//		goto EXIT;*/
+//
+//	dwCountMcf = (DWORD)(*m_pmcf).GetLongArray(MCF_SEC_PROPSETTINGS, MCF_KEY_PROP_SUP_CUSTOM_PAPERSIZE);
+//	if(dwCountMcf == 0)
+//		goto EXIT;
+//
+//	pl = (*m_pmcf).GetLongArrayData();
+//
+//	pjson = new CShJsonUserPSize(m_hInst, pszSvrPrnName);
+//	if(pjson == NULL)
+//		goto EXIT;
+//
+//	pjson->SetParent(this);
+//	
+//	pDataTmp = pUPSData;
+//	memcpy(&dwCount,pDataTmp,sizeof(dwCount));
+//	if(dwCount != dwCountMcf)
+//		goto EXIT;
+//	
+//	pDataTmp += sizeof(dwCount);
+//
+//	dwDataSize = sizeof(dwCount) + dwCount * sizeof(USERPAPERSIZEDATA);
+//	if(dwSize != dwDataSize)
+//		goto EXIT;
+//
+//	for(i=0; i < dwCount; i++)
+//	{
+//		memset(&upsd, 0, sizeof(upsd));
+//		memcpy(&upsd,pDataTmp,sizeof(USERPAPERSIZEDATA));
+//
+//		(*pjson).WriteUPSDataToUs(lIndex, pl[i], &upsd);
+//		pDataTmp += sizeof(USERPAPERSIZEDATA);
+//	}
+//	
+//	(*pjson).WriteUPSCount(JSON_KEY_UPS_ROOT_BASE_US, lIndex, dwCount);
+//
+//	lRet = lIndex;
+//
+//EXIT:
+//	if(pjson != NULL)
+//		delete pjson;//soup
 
 	return lRet;
 }
@@ -7009,9 +7015,9 @@ EXIT:
 //=============================================================================
 DWORD CShJsonUS::ReadUSPPData(WCHAR  *pszSvrPrnName, long lIndex, BYTE* pPPData)
 {
-	CShJsonPP		*pjson = NULL;
+	//CShJsonPP		*pjson = NULL;
 	DWORD			dwSize = 0;
-	DWORD			dwCount = 0;
+	/*DWORD			dwCount = 0;
 	PRINTPOSITION	ppd;
 
 	if(pszSvrPrnName == NULL)
@@ -7042,7 +7048,7 @@ DWORD CShJsonUS::ReadUSPPData(WCHAR  *pszSvrPrnName, long lIndex, BYTE* pPPData)
 
 EXIT:
 	if(pjson != NULL)
-		delete pjson;
+		delete pjson;*///soup
 
 	return dwSize;
 }
@@ -7068,41 +7074,41 @@ long CShJsonUS::WriteShareDataPPToUS(WCHAR  *pszSvrPrnName, long lIndex, BYTE* p
 {
 	long			lRet = -1;
 
-	CShJsonPP		*pjson = NULL;
-	PRINTPOSITION	ppd;
-	DWORD			dwDataSize;
-
-	// ================================================
-	// _/_/_/  パラメータチェック
-	// ================================================
-	if(pszSvrPrnName == NULL)
-		goto EXIT;
-
-	if(pPPData == NULL || dwSize <= 0)
-		goto EXIT;
-
-	pjson = new CShJsonPP(m_hInst, pszSvrPrnName);
-	if(pjson == NULL)
-		goto EXIT;
-
-	pjson->SetParent(this);
-
-	dwDataSize = sizeof(PRINTPOSITION);
-	if(dwSize != dwDataSize)
-		goto EXIT;
-
-	memset(&ppd, 0, sizeof(ppd));
-	memcpy(&ppd,pPPData,dwSize);
-
-	(*pjson).WritePPDataToUs(lIndex, &ppd);	
-	(*pjson).WritePPCount(JSON_KEY_PP_ROOT_BASE_US, lIndex, 1);
-
-	lRet = lIndex;
-
-EXIT:
-	if(pjson != NULL)
-		delete pjson;
-
+//	CShJsonPP		*pjson = NULL;
+//	PRINTPOSITION	ppd;
+//	DWORD			dwDataSize;
+//
+//	// ================================================
+//	// _/_/_/  パラメータチェック
+//	// ================================================
+//	if(pszSvrPrnName == NULL)
+//		goto EXIT;
+//
+//	if(pPPData == NULL || dwSize <= 0)
+//		goto EXIT;
+//
+//	pjson = new CShJsonPP(m_hInst, pszSvrPrnName);
+//	if(pjson == NULL)
+//		goto EXIT;
+//
+//	pjson->SetParent(this);
+//
+//	dwDataSize = sizeof(PRINTPOSITION);
+//	if(dwSize != dwDataSize)
+//		goto EXIT;
+//
+//	memset(&ppd, 0, sizeof(ppd));
+//	memcpy(&ppd,pPPData,dwSize);
+//
+//	(*pjson).WritePPDataToUs(lIndex, &ppd);	
+//	(*pjson).WritePPCount(JSON_KEY_PP_ROOT_BASE_US, lIndex, 1);
+//
+//	lRet = lIndex;
+//
+//EXIT:
+//	if(pjson != NULL)
+//		delete pjson;
+//	  soup
 	return lRet;
 }
 

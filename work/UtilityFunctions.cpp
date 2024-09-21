@@ -1190,7 +1190,7 @@ void TransferNameToHash(WCHAR* pName, WCHAR* pNameHash)
 std::wstring BinarytoHexString(const /*unsigned*/ WCHAR* szBinary, const DWORD& dwSize)
 {
 	std::wstring strOutput;
-	WCHAR ch[3];
+	WCHAR ch[5];//bear
 	if (szBinary == NULL || dwSize <= 0)
 		goto EXIT;
 
