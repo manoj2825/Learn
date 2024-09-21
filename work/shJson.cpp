@@ -31,6 +31,7 @@ BOOL blDirectReg = TRUE;
 CShJson::CShJson(HINSTANCE hInst, WCHAR FAR *pszSvrPrnName /*CShPrnLog FAR *pLog*/)
 			//: PARENT_CLASSNAME(hInst, pszSvrPrnName, pLog)
 {
+	m_hInst = hInst;
 	m_pszSvrPrnName = pszSvrPrnName;
 	m_pszDeviceName = NULL;
 	m_blJsonParsed = FALSE;

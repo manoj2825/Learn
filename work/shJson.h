@@ -130,6 +130,7 @@ public:
 	
 
 	BOOL m_blExistFolder;
+	HINSTANCE		m_hInst;
 
 };
 

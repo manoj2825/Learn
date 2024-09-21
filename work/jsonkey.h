@@ -54,6 +54,7 @@
 #define JSON_ENT_US_ID			L"id"
 #define JSON_ENT_US_TIME		L"time"
 #define JSON_ENT_US_SELF		L"self"
+#define JSON_ENT_US_FEATUREOPTIONDATA			L"FeatureOptionData"
 
 #define JSON_ENT_US_CHAPTERINSPG					L"chapterins_page"
 
