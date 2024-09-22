@@ -1702,6 +1702,13 @@ BOOL CShCmbUserset::setLimitByOptionTbl(void)
 	/*Get the GPD feature Count*/
 	nNumberOfFeatures = GetGPDFeatureCount();
 	BOOL			blFlg = FALSE;
+
+	CShIniFile			*m_pmcf = NULL;
+	TCHAR szCommonDatFilePath[_MAX_PATH] = { 0 };
+	GetProjectFileName(szCommonDatFilePath, L"Common.DAT");
+	m_pmcf = new CShIniFile(ghInstance, m_pPrinterName, szCommonDatFilePath, FALSE);
+	CShJsonUS			*pjsonus = NULL;
+
 	if (m_ppi == NULL) {
 		goto EXIT;
 	}
@@ -1717,6 +1724,15 @@ BOOL CShCmbUserset::setLimitByOptionTbl(void)
 	{
 		goto EXIT;
 	}
+
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		pjsonus = new CShJsonUS(ghInstance, m_pPrinterName, m_hStringResourceHandle);
+		pjsonus->Init();
+		if (pjsonus == NULL)
+			goto EXIT;
+	}
+
 	if (*m_pUsIndex == (short)0x7fff) {
 		pscdmCurrent = new SCDM;
 		if (pscdmCurrent == NULL) {
@@ -1739,7 +1755,10 @@ BOOL CShCmbUserset::setLimitByOptionTbl(void)
 
 	if (m_pPrinterName != NULL) {
 		
-		dwCount = (*preg).ReadCount(m_pPrinterName);
+		if ((*m_pmcf).IsWriteToJson() == TRUE)
+			dwCount = (*pjsonus).ReadCount();
+		else
+			dwCount = (*preg).ReadCount(m_pPrinterName);
 		(*m_ppi).dwFavoritesDataCount = dwCount;
 
 		pblLimitByOptionTbl = new BOOL[dwCount + 1];
@@ -1764,10 +1783,20 @@ BOOL CShCmbUserset::setLimitByOptionTbl(void)
 		for (dwIndex = 0; dwIndex < dwCount; dwIndex++) {
 			SecureZeroMemory(pscdm, sizeof(SCDM));
 			pFeatureInfoList = UpdateFeatureInfoList(pFeatureInfoList, (short)dwIndex);
-				
-			if  ((*preg).ReadData(m_pPrinterName, pscdm, (short)dwIndex) == 0)
+			
+			if ((*m_pmcf).IsWriteToJson() == TRUE)
 			{
-				goto EXIT;
+				if ((*pjsonus).ReadData(pscdm, (short)dwIndex) == 0)
+				{
+					goto EXIT;
+				}
+			}
+			else
+			{
+				if ((*preg).ReadData(m_pPrinterName, pscdm, (short)dwIndex) == 0)
+				{
+					goto EXIT;
+				}
 			}
 			
 			//<S><A>To Fix Redmine Bug #3845,#3783,2021.august.09, SSDI:Chanchal Singla
@@ -1859,6 +1888,18 @@ EXIT:
 	{
 		delete pFeatureInfoList;
 		pFeatureInfoList = NULL;
+	}
+
+	if (pjsonus != NULL)
+	{
+		delete pjsonus;
+		pjsonus = NULL;
+	}
+	//<S><A>To Implement Task #3118,22-04-2024,SSDI:Manoj S
+	if (m_pmcf != NULL)
+	{
+		delete m_pmcf;
+		m_pmcf = NULL;
 	}
 	return blRet;
 }
