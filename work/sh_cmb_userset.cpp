@@ -202,6 +202,8 @@ HRESULT CShCmbUserset::OnInit(const INT iCtrlID, const HWND hDlg)
 	DWORD			dwCmbHeight = 0;
 	int				height = 0;
 	DWORD				i;
+	DWORD				tempidcheck;
+	BOOL				tempcheck = false;
 	//<S><A>To Implement Task #3118,22-04-2024,SSDI:Manoj S
 	//Change the specification for function limitation, display method by changing option
 	CShIniFile			*m_pmcf = NULL;
@@ -500,7 +502,10 @@ HRESULT CShCmbUserset::OnInit(const INT iCtrlID, const HWND hDlg)
 
 		}
 
-		pjsonus->WriteJsonDataToFile();
+		if (pjsonus->ReadID(0) == 0)
+		{
+			pjsonus->WriteJsonDataToFile();
+		}
 	
 		setLimitByOptionTbl();
 		
@@ -2208,6 +2213,13 @@ EXIT:
 PFEATUREINFOLIST CShCmbUserset::UpdateFeatureInfoList(PFEATUREINFOLIST pFeatureInfoList, LONG Index)
 {
 	MFPPrinterUI_Logger slog(__FUNCTION__"\n");
+
+	CShIniFile			*m_pmcf = NULL;
+	TCHAR szCommonDatFilePath[_MAX_PATH] = { 0 };
+	GetProjectFileName(szCommonDatFilePath, L"Common.DAT");
+	m_pmcf = new CShIniFile(ghInstance, m_pPrinterName, szCommonDatFilePath, FALSE);
+	CShJsonUS			*pjsonus = NULL;
+
 	PRINT_FEATURE_OPTION* pFeatureOptionPair = NULL;
 	size_t nFeatureIndex = 0;
 	size_t nNumberOfFeatures = 0;
@@ -2248,9 +2260,26 @@ PFEATUREINFOLIST CShCmbUserset::UpdateFeatureInfoList(PFEATUREINFOLIST pFeatureI
 	{
 		goto EXIT;
 	}
-	if ((*preg).ReadFeatureOptionData(m_pPrinterName, &pFeatureOptionList, Index) == 0)
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
 	{
-		ResetGPDFeatureOptionList(m_pPrinterName, &pFeatureOptionList);
+		pjsonus = new CShJsonUS(ghInstance, m_pPrinterName, m_hStringResourceHandle);
+		pjsonus->Init();
+		if (pjsonus == NULL)
+			goto EXIT;
+	}
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		if ((*pjsonus).ReadFeatureOptionData(&pFeatureOptionList, Index) == 0)
+		{
+			ResetGPDFeatureOptionList(m_pPrinterName, &pFeatureOptionList);
+		}
+	}
+	else
+	{
+		if ((*preg).ReadFeatureOptionData(m_pPrinterName, &pFeatureOptionList, Index) == 0)
+		{
+			ResetGPDFeatureOptionList(m_pPrinterName, &pFeatureOptionList);
+		}
 	}
 	
 	//Update the feature info list 
@@ -2287,6 +2316,16 @@ EXIT:
 	{
 		delete preg;
 		preg = NULL;
+	}
+	if (preg != NULL)
+	{
+		delete preg;
+		preg = NULL;
+	}
+	if (pjsonus != NULL)
+	{
+		delete pjsonus;
+		pjsonus = NULL;
 	}
 	return pFeatureInfoList;
 }

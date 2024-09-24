@@ -267,7 +267,7 @@ long CShJsonUS::WriteData(WCHAR FAR *pszTitle, PSCDM pscdm, PGPDFEATUREOPTIONLIS
 
 	long lRetReg = -1;
 
-	lRetReg = WriteDataJson((long)lRet);
+	//lRetReg = WriteDataJson((long)lRet);bear
 
 EXIT:
 
@@ -440,11 +440,11 @@ long CShJsonUS::WriteData(WCHAR FAR *pszTitle, PGPDFEATUREOPTIONLIST pFeatureLis
 
 	// --- data (binary)
 	int scdmSize = sizeof(SCDM);
-	WriteJsonBinaryData(pszKey, JSON_ENT_US_DATA, (WCHAR *)pscdm, scdmSize);
+	WriteJsonBinaryData(pszKey, JSON_ENT_US_DATA, (char *)pscdm, scdmSize);//smartbear
 
 	// --- FeatureOptionData (binary)
 	int featureinfolistsize = sizeof(GPDFEATUREOPTIONLIST);
-	WriteJsonBinaryData(pszKey, JSON_ENT_US_FEATUREOPTIONDATA, (WCHAR *)pFeatureList, scdmSize);
+	WriteJsonBinaryData(pszKey, JSON_ENT_US_FEATUREOPTIONDATA, (char *)pFeatureList, featureinfolistsize);
 	//WriteJsonBinaryData(HKEY_CURRENT_USER, pszKey, REG_ENT_US_FEATUREOPTIONDATA, REG_BINARY, (WCHAR*)pFeatureList, sizeof(GPDFEATUREOPTIONLIST));
 
 	// --- count
@@ -694,7 +694,7 @@ long CShJsonUS::ReadData(PSCDM pscdm, long lIndex)
 
 	// --- data
 	dwSize = sizeof(SCDM);
-	if(ReadJsonBinaryData(pszKey,JSON_ENT_US_DATA,(WCHAR*)pscdm, dwSize) == FALSE)
+	if(ReadJsonBinaryData(pszKey,JSON_ENT_US_DATA,(char*)pscdm, dwSize) == FALSE)
 		goto EXIT;
 
 	lRet = sizeof(SCDM);
@@ -702,6 +702,45 @@ long CShJsonUS::ReadData(PSCDM pscdm, long lIndex)
 EXIT:
 
 	if(pszKey != NULL)
+		delete[] pszKey;
+
+	return lRet;
+}
+
+long CShJsonUS::ReadFeatureOptionData(PGPDFEATUREOPTIONLIST pFeatureList, long lIndex)
+{
+	long			lRet = 0;
+
+	WCHAR FAR		*pszKey = NULL;
+
+	DWORD			dwSize = 0;
+
+	if (pFeatureList == NULL)
+	{
+		lRet = sizeof(GPDFEATUREOPTIONLIST);
+		goto EXIT;
+	}
+
+	// ================================================
+	// _/_/_/  ì«Ç›çûÇ›
+	// ================================================
+	pszKey = new WCHAR[SCUI_REGKEYSIZE];
+	if (pszKey == NULL)
+		goto EXIT;
+
+	SecureZeroMemory(pszKey, SCUI_REGKEYSIZE);
+	::wsprintf(pszKey, JSON_KEY_US_INDEX_BASE, lIndex);
+
+	// --- data
+	dwSize = sizeof(GPDFEATUREOPTIONLIST);
+	if (ReadJsonBinaryData(pszKey, JSON_ENT_US_FEATUREOPTIONDATA, (char*)pFeatureList, dwSize) == FALSE)
+		goto EXIT;
+
+	lRet = sizeof(GPDFEATUREOPTIONLIST);
+
+EXIT:
+
+	if (pszKey != NULL)
 		delete[] pszKey;
 
 	return lRet;
@@ -899,7 +938,7 @@ long CShJsonUS::ReadChapterInsPage(long lIndex, WCHAR FAR *pszChpInsPage, LONG s
 	::wsprintf(pszKey, JSON_KEY_US_INDEX_BASE, lIndex);
 
 	dwSize = size;
-	blSuccess = ReadJsonBinaryData(pszKey,JSON_ENT_US_CHAPTERINSPG,pszChpInsPage, dwSize);
+	//blSuccess = ReadJsonBinaryData(pszKey,JSON_ENT_US_CHAPTERINSPG,pszChpInsPage, dwSize);
 
 	if(blSuccess == FALSE)
 		goto EXIT;

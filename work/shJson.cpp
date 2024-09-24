@@ -196,6 +196,7 @@ BOOL CShJson::WriteJsonBinaryData(const WCHAR* pszKeyPath, const WCHAR* pszEntry
 	//string strHex;
 	std::wstring strHex;
 	std::string tempstr;
+	int len;
 	if(pszKeyPath == NULL || pszEntry == NULL || pData == NULL || dwSize <= 0)
 		goto EXIT;
 
@@ -203,9 +204,42 @@ BOOL CShJson::WriteJsonBinaryData(const WCHAR* pszKeyPath, const WCHAR* pszEntry
 		ParseToJsonData();
 	}
 
+	size_t length = wcslen(pData);  // Number of WCHARs, excluding the null terminator
+	size_t sizeInBytes = length * sizeof(WCHAR);  // Total size in bytes
+
 	strHex = BinarytoHexString((WCHAR *)pData, dwSize);
+	len = strHex.length();
 	tempstr = std::string(strHex.begin(), strHex.end());
+	len = tempstr.length();
 	bRet = SetKeyPathNodeValue(pszKeyPath,pszEntry,Json::Value(tempstr));
+
+EXIT:
+	return bRet;
+}
+
+
+BOOL CShJson::WriteJsonBinaryData(const WCHAR* pszKeyPath, const WCHAR* pszEntry, const char* pData, const DWORD& dwSize)
+{
+	BOOL bRet = FALSE;
+	//string strHex;
+	std::string strHex;
+	std::string tempstr;
+	int len;
+	if (pszKeyPath == NULL || pszEntry == NULL || pData == NULL || dwSize <= 0)
+		goto EXIT;
+
+	if (m_blJsonParsed == FALSE) {
+		ParseToJsonData();
+	}
+
+	//size_t length = wcslen(pData);  // Number of WCHARs, excluding the null terminator
+	//size_t sizeInBytes = length * sizeof(WCHAR);  // Total size in bytes
+
+	strHex = BinarytoHexString((unsigned char *)pData, dwSize);
+	len = strHex.length();
+	//tempstr = std::string(strHex.begin(), strHex.end());
+	//len = tempstr.length();
+	bRet = SetKeyPathNodeValue(pszKeyPath, pszEntry, Json::Value(strHex));
 
 EXIT:
 	return bRet;
@@ -312,10 +346,37 @@ EXIT:
 // outline
 //     read the json binary data
 //=============================================================================
-BOOL CShJson::ReadJsonBinaryData(const WCHAR* pszKeyPath,const WCHAR* pszEntry, WCHAR* pData, DWORD& dwSize)
+BOOL CShJson::ReadJsonBinaryData(const WCHAR* pszKeyPath, const WCHAR* pszEntry, WCHAR* pData, DWORD& dwSize)
 {
 	BOOL bRet = FALSE;
+	int len;
+	Json::Value nodeValue;
 
+	if (pszKeyPath == NULL || pszEntry == NULL || pData == NULL || dwSize <= 0)
+		goto EXIT;
+
+	if (m_blJsonParsed == FALSE) {
+		ParseToJsonData();
+	}
+
+	bRet = GetKeyPathNodeValue(pszKeyPath, pszEntry, nodeValue);
+
+	if (bRet == TRUE)
+	{
+		string tempstr = nodeValue.asString();
+		len = tempstr.length();
+		//std::wstring strHex(tempstr.begin(), tempstr.end());
+		//len = strHex.length();
+		bRet = HexStringtoBinary(tempstr.c_str(), tempstr.length(), (BYTE*)pData, dwSize);
+	}
+
+EXIT:
+	return bRet;
+}
+BOOL CShJson::ReadJsonBinaryData(const WCHAR* pszKeyPath,const WCHAR* pszEntry, char* pData, DWORD& dwSize)
+{
+	BOOL bRet = FALSE;
+	int len;
 	Json::Value nodeValue;
 	
 	if(pszKeyPath == NULL || pszEntry == NULL || pData == NULL || dwSize <= 0)
@@ -330,10 +391,10 @@ BOOL CShJson::ReadJsonBinaryData(const WCHAR* pszKeyPath,const WCHAR* pszEntry, 
 	if(bRet == TRUE)
 	{
 		string tempstr= nodeValue.asString();
-
-		std::wstring strHex(tempstr.begin(), tempstr.end());
-
-		bRet = HexStringtoBinary(strHex.c_str(),strHex.length(),(BYTE*)pData,dwSize);
+		len = tempstr.length();
+		//std::wstring strHex(tempstr.begin(), tempstr.end());
+		//len = strHex.length();
+		bRet = HexStringtoBinary(tempstr.c_str(), tempstr.length(),(BYTE*)pData,dwSize);
 	}
 
 EXIT:

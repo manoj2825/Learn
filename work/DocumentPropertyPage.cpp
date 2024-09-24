@@ -5030,6 +5030,12 @@ BOOL CDocumentPropertyPage::OnUsSelect(HWND hDlg, WCHAR* pPrinterName, DWORD wCo
 	//========================================================================
 	CShRegJC		*pregJC = NULL;
 
+	CShIniFile			*m_pmcf = NULL;
+	TCHAR szCommonDatFilePath[_MAX_PATH] = { 0 };
+	GetProjectFileName(szCommonDatFilePath, L"Common.DAT");
+	m_pmcf = new CShIniFile(ghInstance, m_pPrinterName, szCommonDatFilePath, FALSE);
+	CShJsonUS			*pjsonus = NULL;
+
 	POEMDEV pPrivatetDevMode = NULL;
 	//PFEATUREINFOLIST pFeatureInfoList = NULL; //<S><D>Fix for Coverity issue 92766. Moved the declaration to Header file. Harika,20230427
 	PROPSTATE wPropertySheetState_Pre;
@@ -5065,6 +5071,14 @@ BOOL CDocumentPropertyPage::OnUsSelect(HWND hDlg, WCHAR* pPrinterName, DWORD wCo
 	if (preg == NULL)
 	{
 		goto EXIT;
+	}
+
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		pjsonus = new CShJsonUS(ghInstance, m_pPrinterName, m_hStringResourceHandle);
+		pjsonus->Init();
+		if (pjsonus == NULL)
+			goto EXIT;
 	}
 	/*Get the Latest index of Favorities Feature*/
 	wIndex = GetValue(hDlg, wControlID);
@@ -5109,15 +5123,33 @@ BOOL CDocumentPropertyPage::OnUsSelect(HWND hDlg, WCHAR* pPrinterName, DWORD wCo
 		else
 		{
 			bIsUIUpdated = TRUE;
-			if ((*preg).ReadData(pPrinterName, &pPrivatetDevMode->scpi, wIndex) == 0)
+			if ((*m_pmcf).IsWriteToJson() == TRUE)
 			{
-				//if data is not available in registry that time fbove code executes
-				wIndex = 0;
-				if (pCmbUserset)	//Added to fix coverity issue 92762 issue1
+				if ((*pjsonus).ReadData(&pPrivatetDevMode->scpi, wIndex) == 0)
 				{
-					pCmbUserset->ResetDevmode(pPrinterName, pPrivatetDevMode, m_DefaultSettings, m_PaperInfo);
-					FillPubDModeData(pPrivatetDevMode, m_pOemPublicDevMode);
-					pCmbUserset->MergeDevmode(pPrivatetDevMode);
+					//if data is not available in registry that time fbove code executes
+					wIndex = 0;
+					if (pCmbUserset)	//Added to fix coverity issue 92762 issue1
+					{
+						pCmbUserset->ResetDevmode(pPrinterName, pPrivatetDevMode, m_DefaultSettings, m_PaperInfo);
+						FillPubDModeData(pPrivatetDevMode, m_pOemPublicDevMode);
+						pCmbUserset->MergeDevmode(pPrivatetDevMode);
+					}
+				}
+
+			}
+			else
+			{
+				if ((*preg).ReadData(pPrinterName, &pPrivatetDevMode->scpi, wIndex) == 0)
+				{
+					//if data is not available in registry that time fbove code executes
+					wIndex = 0;
+					if (pCmbUserset)	//Added to fix coverity issue 92762 issue1
+					{
+						pCmbUserset->ResetDevmode(pPrinterName, pPrivatetDevMode, m_DefaultSettings, m_PaperInfo);
+						FillPubDModeData(pPrivatetDevMode, m_pOemPublicDevMode);
+						pCmbUserset->MergeDevmode(pPrivatetDevMode);
+					}
 				}
 			}
 			if (pCmbUserset)		//Added to fix coverity issue 92762 issue2
@@ -5131,7 +5163,15 @@ BOOL CDocumentPropertyPage::OnUsSelect(HWND hDlg, WCHAR* pPrinterName, DWORD wCo
 			{
 				if ((*m_ObjCShowMessage).Message(hDlg, IDS_MESTITLE_1, IDS_MESSAGE_43, MB_ICONINFORMATION | MB_YESNO) == IDYES)
 				{
-					(*preg).DeleteData(wIndex);
+					if ((*m_pmcf).IsWriteToJson() == TRUE)
+					{
+						(*pjsonus).DeleteData(wIndex);
+						(*pjsonus).WriteJsonDataToFile();
+					}
+					else
+					{
+						(*preg).DeleteData(wIndex);
+					}
 
 					if (*m_pUsIndex > wIndex)
 					{
@@ -5204,11 +5244,14 @@ BOOL CDocumentPropertyPage::OnUsSelect(HWND hDlg, WCHAR* pPrinterName, DWORD wCo
 		//<S><A>To Fix Redmine Bug #3908,2021-06-15,SSDI:Chanchal Singla 
 		if (wIndex != 0)
 		{
-			lRet = (*preg).ReadDataReg(pPrinterName, wIndex);
+			if ((*m_pmcf).IsWriteToJson() == TRUE)
+				lRet = (*pjsonus).ReadDataJson(wIndex);
+			else
+				lRet = (*preg).ReadDataReg(pPrinterName, wIndex);
 			//<S><C>To Fix Redmine Bug #3681,2021.11.29,SSDI:Chanchal Singla
 			///Custom Paper values are changing to Default even though cancel button is clicked
 			USERPAPERSIZEDATA upsd = {};
-			CUPSReg pregUps(m_hStringResourceHandle, m_pPrinterName);
+			CUPSReg pregUps(m_hStringResourceHandle, m_pPrinterName);//bear
 			//<S><C>To Fix Redmine Bug #2539 Issue 2: Custom dialog values are getting updated in Devices and Printers even though values are changed from application
 			//pregUps.ReadUPSDataToUs(m_pPrinterName, wIndex,DMPAPER_CUSTOM, &upsd);
 			//wCusUnit
@@ -5442,7 +5485,7 @@ BOOL CDocumentPropertyPage::OnUsSelect(HWND hDlg, WCHAR* pPrinterName, DWORD wCo
 				}
 				//<S><C>To Fix Redmine Bug #3681,2021.10.12,SSDI:Chanchal Singla
 				///Custom Paper values are changing to Default even though cancel button is clicked
-				(*pregUps).GetUPSDefData(&upsd);
+				(*pregUps).GetUPSDefData(&upsd);//bear
 				memcpy(&m_ppi->PaperSize_upsd, &upsd, sizeof(USERPAPERSIZEDATA));
 //<S><A>To Fix Redmine Bug #2539 ,25.02.2022,SSDI:Chanchal Singla
 //Bug #2539 Issue 2: Custom dialog values are getting updated in Devices and Printers even though values are changed from application
@@ -5582,6 +5625,16 @@ EXIT:
 			pFeatureInfoList = NULL;
 
 		}
+	}
+	if (preg != NULL)
+	{
+		delete preg;
+		preg = NULL;
+	}
+	if (pjsonus != NULL)
+	{
+		delete pjsonus;
+		pjsonus = NULL;
 	}
 	return blRet;
 }
@@ -6269,6 +6322,10 @@ BOOL CDocumentPropertyPage::OnUsSave(HWND hDlg)
 		lIndex = (*pjsonus).WriteData(pszName, pscdm, &pFeatureList, lIndex, blOverWrite);
 		(*pjsonus).WriteEachData( pscdm, m_pFeatureInfoList, lIndex);
 	}
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		(*pjsonus).WriteJsonDataToFile();
+	}
 
 	if (lIndex != -1)
 		*m_pUsIndex = (short)lIndex;
@@ -6281,10 +6338,7 @@ BOOL CDocumentPropertyPage::OnUsSave(HWND hDlg)
 		(*pCmbUserset).OnInit(IDC_CMB_SHARED_USRSET, hDlg);
 	}
 
-	if ((*m_pmcf).IsWriteToJson() == TRUE)
-	{
-		(*pjsonus).WriteJsonDataToFile();
-	}
+
 
 	//enable apply Button 
 	{
@@ -6349,6 +6403,12 @@ EXIT:
 		delete pjsonus;
 		pjsonus = NULL;
 	}
+	if (m_pmcf != NULL)
+	{
+		delete m_pmcf;
+		m_pmcf = NULL;
+	}
+	
 	if (devmodeupdate != NULL)
 	{
 		delete devmodeupdate;
@@ -6385,6 +6445,12 @@ BOOL CDocumentPropertyPage::OnUsDelete(HWND hDlg)
 	short			wCount = 0;
 	CShRegUS		*preg = NULL;
 
+	CShIniFile			*m_pmcf = NULL;
+	TCHAR szCommonDatFilePath[_MAX_PATH] = { 0 };
+	GetProjectFileName(szCommonDatFilePath, L"Common.DAT");
+	m_pmcf = new CShIniFile(ghInstance, m_pPrinterName, szCommonDatFilePath, FALSE);
+	CShJsonUS			*pjsonus = NULL;
+
 	PPROPSTATE		pps;
 //<S><A>To Implement Task#3114,13-09-2024,SSDI:Manoj S
 	BOOL			bShare = FALSE;
@@ -6414,7 +6480,23 @@ BOOL CDocumentPropertyPage::OnUsDelete(HWND hDlg)
 		goto EXIT;
 	}
 
-	(*preg).DeleteData(*m_pUsIndex);
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		pjsonus = new CShJsonUS(ghInstance, m_pPrinterName, m_hStringResourceHandle);
+		pjsonus->Init();
+		if (pjsonus == NULL)
+			goto EXIT;
+	}
+
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+		(*pjsonus).DeleteData(*m_pUsIndex);
+	else
+		(*preg).DeleteData(*m_pUsIndex);
+
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		(*pjsonus).WriteJsonDataToFile();
+	}
 
 	if (pCmbUserset)	//<S><A> Fix for Coverity issue 92765. Harika 20230331
 	{
@@ -6435,6 +6517,12 @@ BOOL CDocumentPropertyPage::OnUsDelete(HWND hDlg)
 		pControl.EnableApplyButton(hDlg);
 	}
 //<S><A>To Implement Task#3114,13-09-2024,SSDI:Manoj S
+
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		(*pjsonus).WriteJsonDataToFile();
+	}
+
 	preg->ReadShareDayTimeFuncFromHKLM(m_pPrinterName, szTextHKLMW, REG_ENT_SHARE_KEYSIZEW);
 
 	if (wcslen(szTextHKLMW) > 0)
@@ -6450,6 +6538,17 @@ BOOL CDocumentPropertyPage::OnUsDelete(HWND hDlg)
 	blRet = TRUE;
 
 EXIT:
+
+	if (pjsonus != NULL)
+	{
+		delete pjsonus;
+		pjsonus = NULL;
+	}
+	if (m_pmcf != NULL)
+	{
+		delete m_pmcf;
+		m_pmcf = NULL;
+	}
 
 	return blRet;
 }
@@ -6477,7 +6576,12 @@ short CDocumentPropertyPage::SearchUSData(WCHAR *pszTitle)
 	WCHAR 	*pszExist = NULL;
 
 	CShRegUS		*preg = NULL;
-
+	CShJsonUS		*pjsonus = NULL;
+	vector<Json::Value> vecValue;
+	CShIniFile			*m_pmcf = NULL;
+	TCHAR szCommonDatFilePath[_MAX_PATH] = { 0 };
+	GetProjectFileName(szCommonDatFilePath, L"Common.DAT");
+	m_pmcf = new CShIniFile(ghInstance, m_pPrinterName, szCommonDatFilePath, FALSE);
 	// ================================================
 	// _/_/_/  pszTitle
 	// ================================================
@@ -6492,23 +6596,63 @@ short CDocumentPropertyPage::SearchUSData(WCHAR *pszTitle)
 	}
 
 
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		pjsonus = new CShJsonUS(ghInstance, m_pPrinterName, m_hStringResourceHandle);
+		pjsonus->Init();
+		if (pjsonus == NULL)
+			goto EXIT;
+	}
+
+
 	pszExist = new WCHAR[(SCUI_TITLE_READ_MAX + 1) * 2];
 	if (pszExist == NULL)
 		goto EXIT;
 
-	lCount = (*preg).ReadCount(m_pPrinterName);
-	for (i = 1; i < lCount; i++)
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
 	{
-		SecureZeroMemory(pszExist, (SCUI_TITLE_READ_MAX + 1) * 2);
-		if ((*preg).GetTitle(m_pPrinterName, pszExist, (SCUI_TITLE_READ_MAX + 1) * 2, i) == TRUE)
-		{
-			if (::_wcsicmp((const wchar_t *)pszExist, (const wchar_t *)pszTitle) == 0)
-				break;
-		}
-	}
 
-	if (i < lCount)
-		wRet = (short)i;
+		//lCount = (*pjsonus).ReadCount();//bear
+		(*pjsonus).GetChildItemsValue(JSON_KEY_US_ROOT_BASE, JSON_ENT_US_TITLE, vecValue);
+
+		for (i = 0; (DWORD)i < vecValue.size(); i++)
+		{
+			SecureZeroMemory(pszExist, (SCUI_TITLE_READ_MAX + 1) * 2);
+			//if ((*pjsonus).GetTitle(pszExist, (SCUI_TITLE_READ_MAX + 1) * 2, i) == TRUE)
+			//{
+			string strTitleInVec = vecValue[i].asString();
+
+			wstring wszUnicode = UTF8ToUnicode(strTitleInVec.c_str());
+			DWORD dwSize = (wszUnicode.length() + 1) * sizeof(wchar_t);
+			memcpy(pszExist, wszUnicode.c_str(), dwSize);
+
+				if (::_wcsicmp((const wchar_t *)pszExist, (const wchar_t *)pszTitle) == 0)
+					break;
+			//}
+		}
+
+
+		if ((DWORD)i < vecValue.size())
+			wRet = (short)i;
+
+	}
+	else
+	{
+		lCount = (*preg).ReadCount(m_pPrinterName);
+		for (i = 1; i < lCount; i++)
+		{
+			SecureZeroMemory(pszExist, (SCUI_TITLE_READ_MAX + 1) * 2);
+			if ((*preg).GetTitle(m_pPrinterName, pszExist, (SCUI_TITLE_READ_MAX + 1) * 2, i) == TRUE)
+			{
+				if (::_wcsicmp((const wchar_t *)pszExist, (const wchar_t *)pszTitle) == 0)
+					break;
+			}
+		}
+
+
+		if (i < lCount)
+			wRet = (short)i;
+	}
 
 EXIT:
 	//<S><A>Coverity fix 91326 - SSDI-Seetharam:20210428
@@ -6521,6 +6665,17 @@ EXIT:
 
 	if (pszExist != NULL)
 		delete[] pszExist;
+
+	if (pjsonus != NULL)
+	{
+		delete pjsonus;
+		pjsonus = NULL;
+	}
+	if (m_pmcf != NULL)
+	{
+		delete m_pmcf;
+		m_pmcf = NULL;
+	}
 
 	return wRet;
 

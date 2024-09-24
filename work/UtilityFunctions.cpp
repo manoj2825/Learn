@@ -1197,7 +1197,25 @@ std::wstring BinarytoHexString(const /*unsigned*/ WCHAR* szBinary, const DWORD& 
 	for (DWORD i = 0; i < dwSize; i++)
 	{
 		//wsprintf(ch, 3, "%02x", szBinary[i]);
-		wsprintf(ch, L"%02x", szBinary[i]);
+		//wsprintf(ch, L"%02x", szBinary[i]);
+		swprintf(ch, 5, L"%02x", szBinary[i]);
+		strOutput += ch;
+	}
+EXIT:
+	return strOutput;
+}
+std::string BinarytoHexString(const unsigned char* szBinary, const DWORD& dwSize)
+{
+	std::string strOutput;
+	char ch[3];//bear
+	if (szBinary == NULL || dwSize <= 0)
+		goto EXIT;
+
+	for (DWORD i = 0; i < dwSize; i++)
+	{
+		sprintf_s(ch, sizeof(ch), "%02x", szBinary[i]);
+		//wsprintf(ch, L"%02x", szBinary[i]);
+		//swprintf(ch, 5, L"%02x", szBinary[i]);
 		strOutput += ch;
 	}
 EXIT:
@@ -1276,6 +1294,28 @@ BYTE HexStringtoBYTE(const WCHAR* szHex)
 EXIT:
 	return btRet;
 }
+BYTE HexStringtoBYTE(const char* szHex)
+{
+	BYTE btRet = 0;
+	if (szHex == NULL)
+		goto EXIT;
+
+	BYTE h = szHex[0];
+	BYTE l = szHex[1];
+	if (isalpha(h))
+		h = h - 'a' + 10;
+	else
+		h = h - '0';
+
+	if (isalpha(l))
+		l = l - 'a' + 10;
+	else
+		l = l - '0';
+
+	btRet = h * 16 + l;
+EXIT:
+	return btRet;
+}
 ////=============================================================================
 //// function
 ////      HexStringtoBinary
@@ -1296,6 +1336,31 @@ BOOL HexStringtoBinary(const WCHAR* szHex, const DWORD& dwHexSize, BYTE* szBinar
 {
 	BOOL bRet = FALSE;
 	const WCHAR* pszTmpHex = szHex;
+	BYTE* pszTmpBinary = szBinary;
+	DWORD dwSize = 0;
+
+	if (dwHexSize != dwBinarySize * 2)
+		goto EXIT;
+
+	while (dwSize < dwHexSize)
+	{
+		BYTE btOne = HexStringtoBYTE(pszTmpHex);
+		memcpy(pszTmpBinary, &btOne, sizeof(BYTE));
+
+		pszTmpHex += 2;
+		dwSize += 2;
+		pszTmpBinary++;
+	}
+	bRet = TRUE;
+
+EXIT:
+	return bRet;
+}
+
+BOOL HexStringtoBinary(const char* szHex, const DWORD& dwHexSize, BYTE* szBinary, const DWORD& dwBinarySize)
+{
+	BOOL bRet = FALSE;
+	const char* pszTmpHex = szHex;
 	BYTE* pszTmpBinary = szBinary;
 	DWORD dwSize = 0;
 

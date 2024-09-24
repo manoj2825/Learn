@@ -42,10 +42,12 @@ public:
 
 	BOOL WriteJsonStrData(const WCHAR* pszKeyPath,const WCHAR* pszEntry,const WCHAR* pData, const DWORD& dwSize, BOOL blForceMB = FALSE);
 	BOOL WriteJsonBinaryData(const WCHAR* pszKeyPath,const WCHAR* pszEntry,const WCHAR* pData,const DWORD& dwSize);//transfer binary data to hex string,then save
+	BOOL WriteJsonBinaryData(const WCHAR* pszKeyPath, const WCHAR* pszEntry, const char* pData, const DWORD& dwSize);//transfer binary data to hex string,then save
 	BOOL WriteJsonDWORDData(const WCHAR* pszKeyPath,const WCHAR* pszEntry,const DWORD& dwData);
 
 	BOOL ReadJsonStrData(const WCHAR* pszKeyPath,const WCHAR* pszEntry, WCHAR* pData, DWORD& dwSize, BOOL blForceMB = FALSE);
-	BOOL ReadJsonBinaryData(const WCHAR* pszKeyPath,const WCHAR* pszEntry, WCHAR* pData, DWORD& dwSize);//read the hex string data, transfer to binary data
+	BOOL ReadJsonBinaryData(const WCHAR* pszKeyPath,const WCHAR* pszEntry, char* pData, DWORD& dwSize);//read the hex string data, transfer to binary data
+	BOOL ReadJsonBinaryData(const WCHAR* pszKeyPath, const WCHAR* pszEntry, WCHAR* pData, DWORD& dwSize);//read the hex string data, transfer to binary data
 	BOOL ReadJsonDWORDData(const WCHAR* pszKeyPath,const WCHAR* pszEntry, DWORD& dwData);
 
 	BOOL WriteJsonDataToFile();

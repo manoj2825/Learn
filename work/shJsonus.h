@@ -57,6 +57,7 @@ public:
 	//long WriteData(WCHAR FAR *pszTitle, PGPDFEATUREOPTIONLIST pFeatureList, PSCDM pscdm, long lIndex, BOOL blOverWrite, WCHAR FAR *pszTime = NULL, BOOL bSelf = TRUE);
 	//long WriteData(WCHAR FAR *pszTitle, PGPDFEATUREOPTIONLIST pFeatureList, PSCDM pscdm, long lIndex, long lID, WCHAR FAR *pszTime = NULL, BOOL bSelf = TRUE);
 	long ReadData(PSCDM pscdm, long lIndex);
+	long ReadFeatureOptionData(PGPDFEATUREOPTIONLIST pFeatureList, long lIndex);
 
 	virtual BOOL WriteCount(DWORD dwCount);
 	virtual DWORD ReadCount();

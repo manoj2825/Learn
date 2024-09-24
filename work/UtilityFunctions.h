@@ -313,9 +313,12 @@ BOOL GetLocalTimeStr(WCHAR* pszTime);
 void TransferNameToHash(WCHAR* pName, WCHAR* pNameHash);
 //<E>To Implement Task #3114,13-09-2024,SSDI:Manoj S
 std::wstring BinarytoHexString(const WCHAR* szBinary, const DWORD& dwSize);
+std::string BinarytoHexString(const unsigned char* szBinary, const DWORD& dwSize);
 //std::wstring BinarytoHexString(const WCHAR* szBinary, const DWORD& dwSize);
 BYTE HexStringtoBYTE(const WCHAR* szHex);
+BYTE HexStringtoBYTE(const char* szHex);
 BOOL HexStringtoBinary(const WCHAR* szHex, const DWORD& dwHexSize, BYTE* szBinary, const DWORD& dwBinarySize);
+BOOL HexStringtoBinary(const char* szHex, const DWORD& dwHexSize, BYTE* szBinary, const DWORD& dwBinarySize);
 void CreateSharpLocalAppDataDierctory(const wchar_t* pwzPath);
 void GetSharpLocalAppDataPath(wchar_t* pwzPath, const wchar_t* pwzDeviceName, const wchar_t* pwzCompanyName);
 BOOL WritePrinerNameToFile(const wchar_t* pwzPath, const wchar_t* pwzDeviceName);
