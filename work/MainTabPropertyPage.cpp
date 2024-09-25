@@ -22,6 +22,7 @@
 #include "shJson.h"
 #include "shJsonus.h"
 #include "shJsonwm.h"
+#include "shjsonups.h"
 //For Logging Purpose
 #include "MFPLogger.h"
 #include "aes.h"
@@ -191,6 +192,17 @@ CMainTabPropertyPage::InitializeUIControls(
 //<S><E> Bug 2169 - Issue1 - 20200629 - SSDI:Seetharam
 	//<S><A> To Added Support  of Custom Paper, 24-07-2020,SSDI:Chanchal Singla
 	{
+		CShIniFile			*m_pmcf = NULL;
+		TCHAR szCommonDatFilePath[_MAX_PATH] = { 0 };
+		GetProjectFileName(szCommonDatFilePath, L"Common.DAT");
+		m_pmcf = new CShIniFile(ghInstance, m_pPrinterName, szCommonDatFilePath, FALSE);
+		CShJsonUserPSize	*pjsonups = NULL;
+		if ((*m_pmcf).IsWriteToJson() == TRUE)
+		{
+			pjsonups = new CShJsonUserPSize(ghInstance, m_pPrinterName);
+			pjsonups->Init();
+		}
+
 		CUPSReg FAR		*pregUps = NULL;
 		pregUps = new CUPSReg(m_hStringResourceHandle, m_pPrinterName);
 		USERPAPERSIZEDATA	upsd;
@@ -201,7 +213,10 @@ CMainTabPropertyPage::InitializeUIControls(
 		//(*pregUps).reset(m_pPrinterName);
 		if (pregUps != NULL)
 		{
-			(*pregUps).reset(m_pPrinterName);
+			if ((*m_pmcf).IsWriteToJson() == TRUE)
+				(*pjsonups).reset();
+			else
+				(*pregUps).reset(m_pPrinterName);
 			//<S><A>To Fix Redmine Bug #3681,2021.10.12,SSDI:Chanchal Singla
 			///Custom Paper values are changing to Default even though cancel button is clicked
 			//<S><C>To Fix Redmine Bug #2539 ,25.02.2022,SSDI:Chanchal Singla
@@ -213,11 +228,29 @@ CMainTabPropertyPage::InitializeUIControls(
 			upsd.wUnit = m_PropertySheetState.wCusUnit;
 			//<E>To Fix Redmine Bug #2539 ,25.02.2022,SSDI:Chanchal Singla
 			memcpy(&m_ppi->PaperSize_upsd, &upsd, sizeof(USERPAPERSIZEDATA));
-			(*pregUps).ReadUPSData(m_pPrinterName, DMPAPER_CUSTOM_ZOOM, &upsd);
+			if ((*m_pmcf).IsWriteToJson() == TRUE)
+			{
+				(*pjsonups).ReadUPSData(DMPAPER_CUSTOM_ZOOM, &upsd);
+			}
+			else
+			{
+				(*pregUps).ReadUPSData(m_pPrinterName, DMPAPER_CUSTOM_ZOOM, &upsd);
+			}
 			memcpy(&m_ppi->FitToPaperSize_upsd, &upsd, sizeof(USERPAPERSIZEDATA));
 			//<E>To Fix Redmine Bug #3681,2021.10.12,SSDI:Chanchal Singla
 			delete pregUps;
 			pregUps = NULL;
+
+			if (m_pmcf != NULL)
+			{
+				delete m_pmcf;
+				m_pmcf = NULL;
+			}
+			if (pjsonups != NULL)
+			{
+				delete pjsonups;
+				pjsonups = NULL;
+			}
 		}
 	}
 	//<E> To Added Support  of Custom Paper, 24-07-2020,SSDI:Chanchal Singla
@@ -3623,16 +3656,32 @@ HRESULT  CMainTabPropertyPage::CustomPaperSetTabDefaults(_In_ CONST HWND   hDlg)
 	USERPAPERSIZEDATA upsd;
 	SecureZeroMemory(&upsd, sizeof(upsd));
 	CUPSReg FAR		*pregUps = NULL;
+
+	CShIniFile			*m_pmcf = NULL;
+	TCHAR szCommonDatFilePath[_MAX_PATH] = { 0 };
+	GetProjectFileName(szCommonDatFilePath, L"Common.DAT");
+	m_pmcf = new CShIniFile(ghInstance, m_pPrinterName, szCommonDatFilePath, FALSE);
+	CShJsonUserPSize	*pjsonups = NULL;
+
 	pregUps = new CUPSReg(m_hStringResourceHandle, m_pPrinterName);
 	if (pregUps == NULL)
 	{
 		return FALSE;
 	}
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		pjsonups = new CShJsonUserPSize(ghInstance, m_pPrinterName);
+		pjsonups->Init();
+	}
 	//<S><C>To Fix Redmine Bug #3681,2021.10.12,SSDI:Chanchal Singla
 	///Custom Paper values are changing to Default even though cancel button is clicked
 	//(*pregUps).resetEx(m_pPrinterName, DMPAPER_CUSTOM);
 	//(*pregUps).ReadUPSData(m_pPrinterName, DMPAPER_CUSTOM, &upsd);
-	(*pregUps).GetUPSDefData(&upsd);
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+		(*pjsonups).GetUPSDefData(&upsd);
+	else
+		(*pregUps).GetUPSDefData(&upsd);
+
 	 memcpy(&m_ppi->PaperSize_upsd, &upsd, sizeof(USERPAPERSIZEDATA));
 //<S><A>To Fix Redmine Bug #2539 ,25.02.2022,SSDI:Chanchal Singla
 //Bug #2539 Issue 2: Custom dialog values are getting updated in Devices and Printers even though values are changed from application	 
@@ -3649,6 +3698,16 @@ HRESULT  CMainTabPropertyPage::CustomPaperSetTabDefaults(_In_ CONST HWND   hDlg)
 	{
 		delete pregUps;
 		pregUps = NULL;
+	}
+	if (m_pmcf != NULL)
+	{
+		delete m_pmcf;
+		m_pmcf = NULL;
+	}
+	if (pjsonups != NULL)
+	{
+		delete pjsonups;
+		pjsonups = NULL;
 	}
 	return S_OK;
 }

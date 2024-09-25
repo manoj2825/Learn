@@ -10,6 +10,7 @@
 #include "ShTabdlgFrame.h"
 #include "shregus.h"
 #include "shJsonus.h"
+#include "shjsonups.h"
 //For Logging Purpose
 #include "MFPLogger.h"
 
@@ -2369,18 +2370,38 @@ BOOL CShTabDlgFrame::SetFactoryDefaults(HWND hDlg, WCHAR* pPrinterName)
 			USERPAPERSIZEDATA upsd;
 			SecureZeroMemory(&upsd, sizeof(upsd));
 			CUPSReg FAR		*pregUps = NULL;
+			CShJsonUserPSize	*pjsonups = NULL;
 			pregUps = new CUPSReg(m_hStringResourceHandle, m_pPrinterName);
 			if (pregUps == NULL)
 			{
 				return FALSE;
 			}
-			(*pregUps).resetEx(m_pPrinterName, DMPAPER_CUSTOM);//bear
-			(*pregUps).resetEx(m_pPrinterName, DMPAPER_CUSTOM_ZOOM);
+			if ((*m_pmcf).IsWriteToJson() == TRUE)
+			{
+
+				pjsonups = new CShJsonUserPSize(ghInstance, m_pPrinterName);
+				pjsonups->Init();
+			}
+			if ((*m_pmcf).IsWriteToJson() == TRUE)
+			{
+				(*pjsonups).resetEx(DMPAPER_CUSTOM);
+				(*pjsonups).resetEx(DMPAPER_CUSTOM_ZOOM);
+			}
+			else
+			{
+				(*pregUps).resetEx(m_pPrinterName, DMPAPER_CUSTOM);
+				(*pregUps).resetEx(m_pPrinterName, DMPAPER_CUSTOM_ZOOM);
+			}
 
 			if (pregUps != NULL)
 			{
 				delete pregUps;
 				pregUps = NULL;
+			}
+			if (pjsonups != NULL)
+			{
+				delete pjsonups;
+				pjsonups = NULL;
 			}
 		}
 		//<S><A>To Fix #3506,2021-04-29,SSDI:Chanchal Singla

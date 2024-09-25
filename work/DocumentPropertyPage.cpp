@@ -19,6 +19,7 @@
 #include "precomp.h"
 #include "shregus.h"
 #include "shJsonus.h"
+#include "shjsonups.h"
 #include "..\..\BitmapResource\Include\resource.h"
 #include <HtmlHelp.h>
 //For Logging Purpose
@@ -1646,14 +1647,30 @@ void  CDocumentPropertyPage::SaveFeatureOptions()
 	BOOL bCustomPaperSelected = FALSE ;
 	MFPPrinterUI_Logger slog(__FUNCTION__"\n");
 	UINT FeatureCount = (UINT)m_pFeatureInfoList[0].nNummberOfFeatures;
+
+	CShIniFile			*m_pmcf = NULL;
+	TCHAR szCommonDatFilePath[_MAX_PATH] = { 0 };
+	GetProjectFileName(szCommonDatFilePath, L"Common.DAT");
+	m_pmcf = new CShIniFile (ghInstance, m_pPrinterName, szCommonDatFilePath, FALSE);
+
 	//<S><C>To Fix Redmine Bug #3681,2021.10.12,SSDI:Chanchal Singla
 	///Custom Paper values are changing to Default even though cancel button is clicked
 	CUPSReg pregUps(m_hStringResourceHandle, m_pPrinterName);
+	//pjsonups = new CShJsonUserPSize(m_hInst, m_pszSvrPrnName);
+	CShJsonUserPSize	*pjsonups = NULL;
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		pjsonups = new CShJsonUserPSize(ghInstance, m_pPrinterName);
+		pjsonups->Init();
+	}
 //<S><D>To Fix Redmine Bug #2539 ,25.02.2022,SSDI:Chanchal Singla
 //Bug #2539 Issue 2: Custom dialog values are getting updated in Devices and Printers even though values are changed from application
    //pregUps.WriteUPSData(m_pPrinterName, DMPAPER_CUSTOM, &m_ppi->PaperSize_upsd);
 //<E>To Fix Redmine Bug #2539 ,25.02.2022,SSDI:Chanchal Singla
-	pregUps.WriteUPSData(m_pPrinterName, DMPAPER_CUSTOM_ZOOM, &m_ppi->FitToPaperSize_upsd);
+	if(m_pmcf->IsWriteToJson() == TRUE)
+		pjsonups->WriteUPSData(DMPAPER_CUSTOM_ZOOM, &m_ppi->FitToPaperSize_upsd);
+	else
+		pregUps.WriteUPSData(m_pPrinterName, DMPAPER_CUSTOM_ZOOM, &m_ppi->FitToPaperSize_upsd);
 	//<E>To Fix Redmine Bug #3681,2021.10.12,SSDI:Chanchal Singla
 	//<S><A>To Fix Redmine Bug #4275(2021.September.14) and Bug #4649 issue 3(2021.Feb.04),SSDI:Chanchal Singla
 	//<S><A>To Fix Redmine Bug #2539 ,25.02.2022,SSDI:Chanchal Singla
@@ -1800,6 +1817,17 @@ void  CDocumentPropertyPage::SaveFeatureOptions()
 		{
 			slog.putLog("CDocumentPropertyPage::SaveFeatureOptions -> NULL_OBJECT(pfo)\n");
 		}
+	}
+
+	if (m_pmcf != NULL)
+	{
+		delete m_pmcf;
+		m_pmcf = nullptr;
+	}
+	if (pjsonups != NULL)
+	{
+		delete pjsonups;
+		pjsonups = nullptr;
 	}
 }
 
@@ -3355,6 +3383,12 @@ int CDocumentPropertyPage::ShowCustomPaperDialog(int iCtrlID, HWND   hDlg)
 	memcpy_s(&pOemPrivateDevMode, sizeof(OEMDEV), m_pOemPrivateDevMode, sizeof(OEMDEV));
 	pOemPrivateDevMode.scpi.ext.byCusUnits = (BYTE)m_pOemPrivateDevMode->scpi.ext.byCusUnits;
 
+	CShIniFile			*m_pmcf = NULL;
+	TCHAR szCommonDatFilePath[_MAX_PATH] = { 0 };
+	GetProjectFileName(szCommonDatFilePath, L"Common.DAT");
+	m_pmcf = new CShIniFile(ghInstance, m_pPrinterName, szCommonDatFilePath, FALSE);
+	CShJsonUserPSize	*pjsonups = NULL;
+
 	// <S><C> To Added Support of Custom paper ,2020.07.24, SSDI:Chanchal Singla
 	USERPAPERSIZEDATA upsd;
 	SecureZeroMemory(&upsd, sizeof(upsd));
@@ -3363,6 +3397,12 @@ int CDocumentPropertyPage::ShowCustomPaperDialog(int iCtrlID, HWND   hDlg)
 	if (pregUps == NULL)
 	{
 		return FALSE;
+	}
+
+	if (m_pmcf->IsWriteToJson() == TRUE)
+	{
+		pjsonups = new CShJsonUserPSize(ghInstance, m_pPrinterName);
+		pjsonups->Init();
 	}
 
 
@@ -3395,8 +3435,16 @@ int CDocumentPropertyPage::ShowCustomPaperDialog(int iCtrlID, HWND   hDlg)
 		//and create the new folder
 		if (upsd.dwWidth == 0 || upsd.dwLength == 0)
 		{
-			(*pregUps).resetEx(m_pPrinterName, DMPAPER_CUSTOM);
-			(*pregUps).ReadUPSData(m_pPrinterName, DMPAPER_CUSTOM, &upsd);
+			if (m_pmcf->IsWriteToJson() == TRUE)
+			{
+				(*pjsonups).resetEx(DMPAPER_CUSTOM);
+				(*pjsonups).ReadUPSData(DMPAPER_CUSTOM, &upsd);
+			}
+			else
+			{
+				(*pregUps).resetEx(m_pPrinterName, DMPAPER_CUSTOM);
+				(*pregUps).ReadUPSData(m_pPrinterName, DMPAPER_CUSTOM, &upsd);
+			}
 		}
 		(*pdlg).SetData(upsd.dwWidth, upsd.dwLength, upsd.wUnit);
 		(*pdlg).SetCustomPaperFeatureOption(m_pFeatureInfoList->pFeatureOptionPair);
@@ -3423,8 +3471,16 @@ int CDocumentPropertyPage::ShowCustomPaperDialog(int iCtrlID, HWND   hDlg)
 		//and create the new folder
 		if (upsd.dwWidth == 0 || upsd.dwLength == 0)
 		{
-			(*pregUps).resetEx(m_pPrinterName, DMPAPER_CUSTOM_ZOOM);
-			(*pregUps).ReadUPSData(m_pPrinterName, DMPAPER_CUSTOM_ZOOM, &upsd);
+			if (m_pmcf->IsWriteToJson() == TRUE)
+			{
+				(*pjsonups).resetEx(DMPAPER_CUSTOM);
+				(*pjsonups).ReadUPSData(DMPAPER_CUSTOM, &upsd);
+			}
+			else
+			{
+				(*pregUps).resetEx(m_pPrinterName, DMPAPER_CUSTOM_ZOOM);
+				(*pregUps).ReadUPSData(m_pPrinterName, DMPAPER_CUSTOM_ZOOM, &upsd);
+			}
 		}
 		(*pdlg).SetData(upsd.dwWidth, upsd.dwLength, upsd.wUnit);
 		(*pdlg).SetCustomPaperFeatureOption(m_pFeatureInfoList->pFeatureOptionPair);
@@ -3488,6 +3544,16 @@ int CDocumentPropertyPage::ShowCustomPaperDialog(int iCtrlID, HWND   hDlg)
 	{
 		delete pregUps;
 		pregUps = NULL;
+	}
+	if (m_pmcf != NULL)
+	{
+		delete m_pmcf;
+		m_pmcf = NULL;
+	}
+	if (pjsonups != NULL)
+	{
+		delete pjsonups;
+		pjsonups = NULL;
 	}
 	// <E> To Addeds Support of Custom paper ,2020.07.24, SSDI:Chanchal Singla
 	return 1;
@@ -5251,7 +5317,13 @@ BOOL CDocumentPropertyPage::OnUsSelect(HWND hDlg, WCHAR* pPrinterName, DWORD wCo
 			//<S><C>To Fix Redmine Bug #3681,2021.11.29,SSDI:Chanchal Singla
 			///Custom Paper values are changing to Default even though cancel button is clicked
 			USERPAPERSIZEDATA upsd = {};
-			CUPSReg pregUps(m_hStringResourceHandle, m_pPrinterName);//bear
+			CUPSReg pregUps(m_hStringResourceHandle, m_pPrinterName);
+			CShJsonUserPSize	*pjsonups = NULL;
+			if ((*m_pmcf).IsWriteToJson() == TRUE)
+			{
+				pjsonups = new CShJsonUserPSize(ghInstance, m_pPrinterName);
+				pjsonups->Init();
+			}
 			//<S><C>To Fix Redmine Bug #2539 Issue 2: Custom dialog values are getting updated in Devices and Printers even though values are changed from application
 			//pregUps.ReadUPSDataToUs(m_pPrinterName, wIndex,DMPAPER_CUSTOM, &upsd);
 			//wCusUnit
@@ -5330,7 +5402,11 @@ BOOL CDocumentPropertyPage::OnUsSelect(HWND hDlg, WCHAR* pPrinterName, DWORD wCo
 			//<E>To Fix Redmine Bug #2539 ,25.02.2022,SSDI:Chanchal Singla
 			memcpy(&m_ppi->PaperSize_upsd, &upsd, sizeof(USERPAPERSIZEDATA));
 			//<E>To Fix Redmine Bug #2539 ,25.02.2022,SSDI:Chanchal Singla
-			pregUps.ReadUPSDataToUs(m_pPrinterName, wIndex, DMPAPER_CUSTOM_ZOOM, &upsd);
+			if ((*m_pmcf).IsWriteToJson() == TRUE)
+				pjsonups->ReadUPSDataToUs(wIndex, DMPAPER_CUSTOM_ZOOM, &upsd);
+			else
+				pregUps.ReadUPSDataToUs(m_pPrinterName, wIndex, DMPAPER_CUSTOM_ZOOM, &upsd);
+
 			memcpy(&m_ppi->FitToPaperSize_upsd, &upsd, sizeof(USERPAPERSIZEDATA));
 			//<E>To Fix Redmine Bug #3681,2021.11.29,SSDI:Chanchal Singla
 		}
@@ -5478,14 +5554,28 @@ BOOL CDocumentPropertyPage::OnUsSelect(HWND hDlg, WCHAR* pPrinterName, DWORD wCo
 				USERPAPERSIZEDATA upsd;
 				SecureZeroMemory(&upsd, sizeof(upsd));
 				CUPSReg FAR		*pregUps = NULL;
+				CShJsonUserPSize	*pjsonups = NULL;
 				pregUps = new CUPSReg(m_hStringResourceHandle, m_pPrinterName);
 				if (pregUps == NULL)
 				{
 					return FALSE;
 				}
+
+				if ((*m_pmcf).IsWriteToJson() == TRUE)
+				{
+					pjsonups = new CShJsonUserPSize(ghInstance, m_pPrinterName);
+					pjsonups->Init();
+				}
 				//<S><C>To Fix Redmine Bug #3681,2021.10.12,SSDI:Chanchal Singla
 				///Custom Paper values are changing to Default even though cancel button is clicked
-				(*pregUps).GetUPSDefData(&upsd);//bear
+				if ((*m_pmcf).IsWriteToJson() == TRUE)
+				{
+					(*pjsonups).GetUPSDefData(&upsd);
+				}
+				else
+				{
+					(*pregUps).GetUPSDefData(&upsd);
+				}
 				memcpy(&m_ppi->PaperSize_upsd, &upsd, sizeof(USERPAPERSIZEDATA));
 //<S><A>To Fix Redmine Bug #2539 ,25.02.2022,SSDI:Chanchal Singla
 //Bug #2539 Issue 2: Custom dialog values are getting updated in Devices and Printers even though values are changed from application
@@ -5502,6 +5592,11 @@ BOOL CDocumentPropertyPage::OnUsSelect(HWND hDlg, WCHAR* pPrinterName, DWORD wCo
 				{
 					delete pregUps;
 					pregUps = NULL;
+				}
+				if (pjsonups != NULL)
+				{
+					delete pjsonups;
+					pjsonups = NULL;
 				}
 			}
 			//<S><A>To Fix Redmine Bug #3908,2021-06-15,SSDI:Chanchal Singla 
@@ -6098,6 +6193,7 @@ BOOL CDocumentPropertyPage::OnUsSave(HWND hDlg)
 	GetProjectFileName(szCommonDatFilePath, L"Common.DAT");
 	m_pmcf = new CShIniFile(ghInstance, m_pPrinterName, szCommonDatFilePath, FALSE);
 	CShJsonUS			*pjsonus = NULL;
+	CShJsonUserPSize	*pjsonups = NULL;
 
 	if (m_ppi == NULL)
 		goto EXIT;
@@ -6130,7 +6226,10 @@ BOOL CDocumentPropertyPage::OnUsSave(HWND hDlg)
 		pjsonus->Init();
 		if (pjsonus == NULL)
 			goto EXIT;
+		pjsonups = new CShJsonUserPSize(ghInstance, m_pPrinterName);
+		pjsonups->Init();
 	}
+
 
 	if ((*m_pmcf).IsWriteToJson() == TRUE)
 		lCount = (*pjsonus).ReadCount();
@@ -6265,7 +6364,14 @@ BOOL CDocumentPropertyPage::OnUsSave(HWND hDlg)
 	///Custom Paper values are changing to Default even though cancel button is clicked
 	//CUPSReg pregUps(m_hStringResourceHandle, m_pPrinterName);
 	//pregUps.WriteUPSData(m_pPrinterName, DMPAPER_CUSTOM, &m_ppi->PaperSize_upsd);
-	pregUps.WriteUPSData(m_pPrinterName, DMPAPER_CUSTOM_ZOOM, &m_ppi->FitToPaperSize_upsd);//bear
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		pjsonups->WriteUPSData(DMPAPER_CUSTOM_ZOOM, &m_ppi->FitToPaperSize_upsd);
+	}
+	else
+	{
+		pregUps.WriteUPSData(m_pPrinterName, DMPAPER_CUSTOM_ZOOM, &m_ppi->FitToPaperSize_upsd);
+	}
 	//<E>To Fix Redmine Bug #3681,2021.11.29,SSDI:Chanchal Singla
 	
 	//<S><A>To Fix Redmine Bug #2539 ,25.02.2022,SSDI:Chanchal Singla
@@ -6402,6 +6508,11 @@ EXIT:
 	{
 		delete pjsonus;
 		pjsonus = NULL;
+	}
+	if (pjsonups != NULL)
+	{
+		delete pjsonups;
+		pjsonups = NULL;
 	}
 	if (m_pmcf != NULL)
 	{
@@ -6702,6 +6813,7 @@ BOOL CDocumentPropertyPage::CompareCurrentSettingVsConfigTabData(PSCDM pscdm1, P
 	BOOL blRet = FALSE;
 	UINT lVal = FALSE;
 	CShLimit limit(NULL, NULL);
+
 	//<S><A>To Fix Redmine Bug #4275(2021.September.14) and Bug #4649 issue 3(2021.Feb.04),SSDI:Chanchal Singla
 	//“This Favorite is not available on current Configuration Setting” message is not displayed
 	PROPSTATE PropertySheetState;
@@ -6753,10 +6865,27 @@ BOOL CDocumentPropertyPage::CompareCurrentSettingVsConfigTabData(PSCDM pscdm1, P
 				USERPAPERSIZEDATA upsd;
 				SecureZeroMemory(&upsd, sizeof(upsd));
 				CUPSReg pregUps(m_hStringResourceHandle, m_pPrinterName);
+
+				CShJsonUserPSize	*pjsonups = NULL;
+				CShIniFile			*m_pmcf = NULL;
+				TCHAR szCommonDatFilePath[_MAX_PATH] = { 0 };
+				GetProjectFileName(szCommonDatFilePath, L"Common.DAT");
+				m_pmcf = new CShIniFile(ghInstance, m_pPrinterName, szCommonDatFilePath, FALSE);
+
+				if ((*m_pmcf).IsWriteToJson() == TRUE)
+				{
+					pjsonups = new CShJsonUserPSize(ghInstance, m_pPrinterName);
+					pjsonups->Init();
+				}
+
 				DWORD dwLength = 0, dwWidth = 0;
 				short wUnit = 0;
 				//pregUps.ReadUPSData(m_pPrinterName, DMPAPER_CUSTOM_ZOOM, &upsd);
-				pregUps.ReadUPSDataToUs(m_pPrinterName, (LONG)wIndex, DMPAPER_CUSTOM_ZOOM, &upsd);
+				if ((*m_pmcf).IsWriteToJson() == TRUE)
+					pjsonups->ReadUPSDataToUs((LONG)wIndex, DMPAPER_CUSTOM_ZOOM, &upsd);
+				else
+					pregUps.ReadUPSDataToUs(m_pPrinterName, (LONG)wIndex, DMPAPER_CUSTOM_ZOOM, &upsd);
+
 				if (upsd.wUnit == unit_inch)	//1
 				{
 					dwWidth = upsd.dwWidth * 2.54 + 1;
@@ -6771,6 +6900,18 @@ BOOL CDocumentPropertyPage::CompareCurrentSettingVsConfigTabData(PSCDM pscdm1, P
 				{
 					blRet = TRUE;
 					goto EXIT;
+				}
+
+
+				if (m_pmcf != NULL)
+				{
+					delete m_pmcf;
+					m_pmcf = NULL;
+				}
+				if (pjsonups != NULL)
+				{
+					delete pjsonups;
+					pjsonups = NULL;
 				}
 			}
 			//<E>To Fix redmine Bug #4649 issue 4,25.02.2022,SSDI:Chanchal Singla

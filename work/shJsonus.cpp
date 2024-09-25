@@ -12,7 +12,7 @@
 #include "shJsonus.h"
 #include <shregus.h>
 //#include "shjsonms.h"
-//#include "shjsonups.h"
+#include "shjsonups.h"
 //#include "shjsonpp.h"
 //#include "shjsonstr.h"
 
@@ -267,7 +267,7 @@ long CShJsonUS::WriteData(WCHAR FAR *pszTitle, PSCDM pscdm, PGPDFEATUREOPTIONLIS
 
 	long lRetReg = -1;
 
-	//lRetReg = WriteDataJson((long)lRet);bear
+	lRetReg = WriteDataJson((long)lRet);
 
 EXIT:
 
@@ -5141,59 +5141,60 @@ long CShJsonUS::WriteDataJsonUPS(long lIndex)
 {
 	long			lRet = -1;
 
-//	CShJsonUserPSize	*pjsonups = NULL;//soup
-//	DWORD			dwCount;
-//	DWORD			dwCountMcf;
-//	WCHAR FAR		*pszKey = NULL;
-//		
-//	//if(CreateObj(scui_obj_ini_mcf) == FALSE)
-//	//	goto EXIT;
-//
-//	dwCountMcf = (DWORD)(*m_pmcf).GetLongArray(MCF_SEC_PROPSETTINGS, MCF_KEY_PROP_SUP_CUSTOM_PAPERSIZE);
-//	if(dwCountMcf == 0)
-//		goto EXIT;
-//
-//	pjsonups = new CShJsonUserPSize(m_hInst, m_pszSvrPrnName);
-//	if(pjsonups == NULL)
-//		goto EXIT;
-//
-//	pjsonups->SetParent(this);
-//
-//	if(lIndex == 0){
-//		(*pjsonups).resetUs(lIndex);
-//		//add to fix Custom paper default values when opened from json
-//		dwCount = (*pjsonups).ReadUPSCount();
-//		if(dwCount == 0)
-//		{
-//			(*pjsonups).reset();
-//			dwCount = (*pjsonups).ReadUPSCount();
-//		}
-//	}
-//	else{
-//		dwCount = (*pjsonups).ReadUPSCount();
-//		if(dwCount == 0)
-//		{
-//			(*pjsonups).reset();
-//			dwCount = (*pjsonups).ReadUPSCount();
-//		}
-//
-//		pszKey = new WCHAR[SCUI_REGKEYSIZE];
-//		if(pszKey == NULL)
-//			goto EXIT;
-//
-//		SecureZeroMemory(pszKey, SCUI_REGKEYSIZE);
-//
-//		::wsprintf(pszKey, JSON_KEY_UPS_ROOT_BASE_US, lIndex);
-//		CopyJsonTreeNode(pszKey,JSON_KEY_UPS_ROOT_BASE);
-//	}
-//
-//	lRet = lIndex;
-//
-//EXIT:
-//	if(pjsonups != NULL)
-//		delete pjsonups;
-//	if(pszKey != NULL)
-//		delete[] pszKey;
+	CShJsonUserPSize	*pjsonups = NULL;
+	DWORD			dwCount;
+	DWORD			dwCountMcf;
+	WCHAR FAR		*pszKey = NULL;
+	LONG pl[2] = { DMPAPER_CUSTOM,DMPAPER_CUSTOM_ZOOM };
+	//if(CreateObj(scui_obj_ini_mcf) == FALSE)
+	//	goto EXIT;
+
+	//dwCountMcf = (DWORD)(*m_pmcf).GetLongArray(MCF_SEC_PROPSETTINGS, MCF_KEY_PROP_SUP_CUSTOM_PAPERSIZE);
+	//if(dwCountMcf == 0)
+	//	goto EXIT;
+
+	pjsonups = new CShJsonUserPSize(m_hInst, m_pszSvrPrnName);
+	pjsonups->Init();
+	if(pjsonups == NULL)
+		goto EXIT;
+
+	pjsonups->SetParent(this);
+
+	if(lIndex == 0){
+		(*pjsonups).resetUs(lIndex);
+		//add to fix Custom paper default values when opened from json
+		dwCount = (*pjsonups).ReadUPSCount();
+		if(dwCount == 0)
+		{
+			(*pjsonups).reset();
+			dwCount = (*pjsonups).ReadUPSCount();
+		}
+	}
+	else{
+		dwCount = (*pjsonups).ReadUPSCount();
+		if(dwCount == 0)
+		{
+			(*pjsonups).reset();
+			dwCount = (*pjsonups).ReadUPSCount();
+		}
+
+		pszKey = new WCHAR[SCUI_REGKEYSIZE];
+		if(pszKey == NULL)
+			goto EXIT;
+
+		SecureZeroMemory(pszKey, SCUI_REGKEYSIZE);
+
+		::wsprintf(pszKey, JSON_KEY_UPS_ROOT_BASE_US, lIndex);
+		CopyJsonTreeNode(pszKey,JSON_KEY_UPS_ROOT_BASE);
+	}
+
+	lRet = lIndex;
+
+EXIT:
+	if(pjsonups != NULL)
+		delete pjsonups;
+	if(pszKey != NULL)
+		delete[] pszKey;
 	return lRet;
 }
 
@@ -5572,46 +5573,48 @@ long CShJsonUS::ReadDataJsonUPS(long lIndex)
 {
 	long			lRet = -1;
 
-//	short			wBy = 1;
-//	WCHAR FAR		*pszKey = NULL;//soup
-//
-//	CShJsonUserPSize	*pjsonups = NULL;
-//	DWORD			dwCount;
-//	DWORD			dwCountMcf;
-//		
-//	/*if(CreateObj(scui_obj_ini_mcf) == FALSE)
-//		goto EXIT;*/
-//
-//	dwCountMcf = (DWORD)(*m_pmcf).GetLongArray(MCF_SEC_PROPSETTINGS, MCF_KEY_PROP_SUP_CUSTOM_PAPERSIZE);
-//	if(dwCountMcf == 0)
-//		goto EXIT;
-//
-//	pjsonups = new CShJsonUserPSize(m_hInst, m_pszSvrPrnName);
-//	if(pjsonups == NULL)
-//		goto EXIT;
-//
-//	pjsonups->SetParent(this);
-//
-//	dwCount = (*pjsonups).ReadUPSCount(JSON_KEY_UPS_ROOT_BASE_US, lIndex);
-//	if(dwCount == 0)
-//		goto EXIT;
-//		
-//	pszKey = new WCHAR[SCUI_REGKEYSIZE];
-//	if(pszKey == NULL)
-//		goto EXIT;
-//
-//	SecureZeroMemory(pszKey, SCUI_REGKEYSIZE);
-//
-//	::wsprintf(pszKey, JSON_KEY_UPS_ROOT_BASE_US, lIndex);
-//	CopyJsonTreeNode(JSON_KEY_UPS_ROOT_BASE,pszKey);
-//
-//	lRet = lIndex;
-//
-//EXIT:
-//	if(pjsonups != NULL)
-//		delete pjsonups;
-//	if(pszKey != NULL)
-//		delete[] pszKey;
+	short			wBy = 1;
+	WCHAR FAR		*pszKey = NULL;
+
+	CShJsonUserPSize	*pjsonups = NULL;
+	DWORD			dwCount;
+	DWORD			dwCountMcf;
+		
+	/*if(CreateObj(scui_obj_ini_mcf) == FALSE)
+		goto EXIT;*/
+
+	LONG pl[2] = { DMPAPER_CUSTOM,DMPAPER_CUSTOM_ZOOM };
+
+	//dwCountMcf = (DWORD)(*m_pmcf).GetLongArray(MCF_SEC_PROPSETTINGS, MCF_KEY_PROP_SUP_CUSTOM_PAPERSIZE);
+	//if(dwCountMcf == 0)
+	//	goto EXIT;
+
+	pjsonups = new CShJsonUserPSize(m_hInst, m_pszSvrPrnName);
+	if(pjsonups == NULL)
+		goto EXIT;
+
+	pjsonups->SetParent(this);
+
+	dwCount = (*pjsonups).ReadUPSCount(JSON_KEY_UPS_ROOT_BASE_US, lIndex);
+	if(dwCount == 0)
+		goto EXIT;
+		
+	pszKey = new WCHAR[SCUI_REGKEYSIZE];
+	if(pszKey == NULL)
+		goto EXIT;
+
+	SecureZeroMemory(pszKey, SCUI_REGKEYSIZE);
+
+	::wsprintf(pszKey, JSON_KEY_UPS_ROOT_BASE_US, lIndex);
+	CopyJsonTreeNode(JSON_KEY_UPS_ROOT_BASE,pszKey);
+
+	lRet = lIndex;
+
+EXIT:
+	if(pjsonups != NULL)
+		delete pjsonups;
+	if(pszKey != NULL)
+		delete[] pszKey;
 	return lRet;
 }
 
@@ -6893,60 +6896,60 @@ long CShJsonUS::WriteShareDataStoredToUS(WCHAR  *pszSvrPrnName, long lIndex, BYT
 DWORD CShJsonUS::ReadUSUPSData(WCHAR  *pszSvrPrnName, long lIndex, BYTE* pUPSData)
 {
 	DWORD			dwSize = 0;
-//	CShJsonUserPSize	*pjson = NULL;
-//	
-//	DWORD			dwCount = 0;
-//	DWORD			dwCountMcf;
-//	long			*pl = NULL;
-//	BYTE			*pDataTmp = NULL;
-//	DWORD			i = 0;
-//	USERPAPERSIZEDATA	upsd;
-//
-//	if(pszSvrPrnName == NULL)
-//		goto EXIT;
-//	
-//	//if(CreateObj(scui_obj_ini_mcf) == FALSE)
-//	//	goto EXIT;
-//
-//	dwCountMcf = (DWORD)(*m_pmcf).GetLongArray(MCF_SEC_PROPSETTINGS, MCF_KEY_PROP_SUP_CUSTOM_PAPERSIZE);
-//	if(dwCountMcf == 0)
-//		goto EXIT;
-//
-//	pl = (*m_pmcf).GetLongArrayData();
-//
-//	pjson = new CShJsonUserPSize(m_hInst, pszSvrPrnName);
-//	if(pjson == NULL)
-//		goto EXIT;
-//
-//	pjson->SetParent(this);
-//
-//	dwCount = (*pjson).ReadUPSCount(JSON_KEY_UPS_ROOT_BASE_US, lIndex);
-//	if(dwCount == 0)
-//		goto EXIT;
-//
-//	dwSize = sizeof(dwCount) + dwCount * sizeof(USERPAPERSIZEDATA);			
-//	if(pUPSData == NULL)
-//	{
-//		goto EXIT;
-//	}
-//
-//	pDataTmp = pUPSData;
-//	memcpy(pDataTmp,&dwCount,sizeof(dwCount));
-//	pDataTmp += sizeof(dwCount);
-//
-//	for(i=0; i < dwCount; i++)
-//	{
-//		memset(&upsd, 0, sizeof(upsd));
-//		BOOL blRet = (*pjson).ReadUPSDataToUs(lIndex, pl[i], &upsd);
-//		if(!blRet)
-//			goto EXIT;
-//		memcpy(pDataTmp,&upsd,sizeof(USERPAPERSIZEDATA));
-//		pDataTmp += sizeof(USERPAPERSIZEDATA);
-//	}
-//
-//EXIT:
-//	if(pjson != NULL)
-//		delete pjson;//soup
+	CShJsonUserPSize	*pjson = NULL;
+	
+	DWORD			dwCount = 0;
+	DWORD			dwCountMcf;
+	LONG pl[2] = { DMPAPER_CUSTOM,DMPAPER_CUSTOM_ZOOM };
+	BYTE			*pDataTmp = NULL;
+	DWORD			i = 0;
+	USERPAPERSIZEDATA	upsd;
+
+	if(pszSvrPrnName == NULL)
+		goto EXIT;
+	
+	//if(CreateObj(scui_obj_ini_mcf) == FALSE)
+	//	goto EXIT;
+
+	//dwCountMcf = (DWORD)(*m_pmcf).GetLongArray(MCF_SEC_PROPSETTINGS, MCF_KEY_PROP_SUP_CUSTOM_PAPERSIZE);
+	//if(dwCountMcf == 0)
+	//	goto EXIT;
+
+	//pl = (*m_pmcf).GetLongArrayData();
+
+	pjson = new CShJsonUserPSize(m_hInst, pszSvrPrnName);
+	if(pjson == NULL)
+		goto EXIT;
+
+	pjson->SetParent(this);
+
+	dwCount = (*pjson).ReadUPSCount(JSON_KEY_UPS_ROOT_BASE_US, lIndex);
+	if(dwCount == 0)
+		goto EXIT;
+
+	dwSize = sizeof(dwCount) + dwCount * sizeof(USERPAPERSIZEDATA);			
+	if(pUPSData == NULL)
+	{
+		goto EXIT;
+	}
+
+	pDataTmp = pUPSData;
+	memcpy(pDataTmp,&dwCount,sizeof(dwCount));
+	pDataTmp += sizeof(dwCount);
+
+	for(i=0; i < dwCount; i++)
+	{
+		memset(&upsd, 0, sizeof(upsd));
+		BOOL blRet = (*pjson).ReadUPSDataToUs(lIndex, pl[i], &upsd);
+		if(!blRet)
+			goto EXIT;
+		memcpy(pDataTmp,&upsd,sizeof(USERPAPERSIZEDATA));
+		pDataTmp += sizeof(USERPAPERSIZEDATA);
+	}
+
+EXIT:
+	if(pjson != NULL)
+		delete pjson;
 
 	return dwSize;
 }
@@ -6972,66 +6975,66 @@ long CShJsonUS::WriteShareDataUPSToUS(WCHAR  *pszSvrPrnName, long lIndex, BYTE* 
 {
 	long			lRet = -1;
 
-//	CShJsonUserPSize		*pjson = NULL;
-//	USERPAPERSIZEDATA	upsd;
-//	DWORD			dwCount;
-//	DWORD			dwCountMcf;
-//	long			*pl = NULL;
-//	DWORD			dwDataSize;
-//	DWORD			i;
-//	BYTE			*pDataTmp = NULL;
-//		
-//	// ================================================
-//	// _/_/_/  パラメータチェック
-//	// ================================================
-//	if(pszSvrPrnName == NULL)
-//		goto EXIT;
-//
-//	if(pUPSData == NULL || dwSize <= 0)
-//		goto EXIT;
-//
-//	/*if(CreateObj(scui_obj_ini_mcf) == FALSE)
-//		goto EXIT;*/
-//
-//	dwCountMcf = (DWORD)(*m_pmcf).GetLongArray(MCF_SEC_PROPSETTINGS, MCF_KEY_PROP_SUP_CUSTOM_PAPERSIZE);
-//	if(dwCountMcf == 0)
-//		goto EXIT;
-//
-//	pl = (*m_pmcf).GetLongArrayData();
-//
-//	pjson = new CShJsonUserPSize(m_hInst, pszSvrPrnName);
-//	if(pjson == NULL)
-//		goto EXIT;
-//
-//	pjson->SetParent(this);
-//	
-//	pDataTmp = pUPSData;
-//	memcpy(&dwCount,pDataTmp,sizeof(dwCount));
-//	if(dwCount != dwCountMcf)
-//		goto EXIT;
-//	
-//	pDataTmp += sizeof(dwCount);
-//
-//	dwDataSize = sizeof(dwCount) + dwCount * sizeof(USERPAPERSIZEDATA);
-//	if(dwSize != dwDataSize)
-//		goto EXIT;
-//
-//	for(i=0; i < dwCount; i++)
-//	{
-//		memset(&upsd, 0, sizeof(upsd));
-//		memcpy(&upsd,pDataTmp,sizeof(USERPAPERSIZEDATA));
-//
-//		(*pjson).WriteUPSDataToUs(lIndex, pl[i], &upsd);
-//		pDataTmp += sizeof(USERPAPERSIZEDATA);
-//	}
-//	
-//	(*pjson).WriteUPSCount(JSON_KEY_UPS_ROOT_BASE_US, lIndex, dwCount);
-//
-//	lRet = lIndex;
-//
-//EXIT:
-//	if(pjson != NULL)
-//		delete pjson;//soup
+	CShJsonUserPSize		*pjson = NULL;
+	USERPAPERSIZEDATA	upsd;
+	DWORD			dwCount;
+	DWORD			dwCountMcf;
+	LONG pl[2] = { DMPAPER_CUSTOM,DMPAPER_CUSTOM_ZOOM };
+	DWORD			dwDataSize;
+	DWORD			i;
+	BYTE			*pDataTmp = NULL;
+		
+	// ================================================
+	// _/_/_/  パラメータチェック
+	// ================================================
+	if(pszSvrPrnName == NULL)
+		goto EXIT;
+
+	if(pUPSData == NULL || dwSize <= 0)
+		goto EXIT;
+
+	/*if(CreateObj(scui_obj_ini_mcf) == FALSE)
+		goto EXIT;*/
+
+	//dwCountMcf = (DWORD)(*m_pmcf).GetLongArray(MCF_SEC_PROPSETTINGS, MCF_KEY_PROP_SUP_CUSTOM_PAPERSIZE);
+	//if(dwCountMcf == 0)
+	//	goto EXIT;
+
+	//pl = (*m_pmcf).GetLongArrayData();
+
+	pjson = new CShJsonUserPSize(m_hInst, pszSvrPrnName);
+	if(pjson == NULL)
+		goto EXIT;
+
+	pjson->SetParent(this);
+	
+	pDataTmp = pUPSData;
+	memcpy(&dwCount,pDataTmp,sizeof(dwCount));
+	//if(dwCount != dwCountMcf)
+	//	goto EXIT;
+	
+	pDataTmp += sizeof(dwCount);
+
+	dwDataSize = sizeof(dwCount) + dwCount * sizeof(USERPAPERSIZEDATA);
+	if(dwSize != dwDataSize)
+		goto EXIT;
+
+	for(i=0; i < dwCount; i++)
+	{
+		memset(&upsd, 0, sizeof(upsd));
+		memcpy(&upsd,pDataTmp,sizeof(USERPAPERSIZEDATA));
+
+		(*pjson).WriteUPSDataToUs(lIndex, pl[i], &upsd);
+		pDataTmp += sizeof(USERPAPERSIZEDATA);
+	}
+	
+	(*pjson).WriteUPSCount(JSON_KEY_UPS_ROOT_BASE_US, lIndex, dwCount);
+
+	lRet = lIndex;
+
+EXIT:
+	if(pjson != NULL)
+		delete pjson;
 
 	return lRet;
 }
