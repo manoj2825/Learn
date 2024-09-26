@@ -11,8 +11,8 @@
 #include <precomp.h>
 #include "shJsonus.h"
 #include <shregus.h>
-//#include "shjsonms.h"
 #include "shjsonups.h"
+#include "shjsonms.h"
 //#include "shjsonpp.h"
 //#include "shjsonstr.h"
 
@@ -5080,44 +5080,44 @@ long CShJsonUS::WriteDataJsonMS(long lIndex)
 {
 	long			lRet = -1;
 
-//	CShJsonMS		*pjsonms = NULL;//soup
-//	DWORD			dwCount;
-//	BOOL			blRet;
-//	WCHAR FAR		*pszKey = NULL;
-//
-//	//if(CreateObj(scui_obj_ini_mcf) == FALSE)
-//	//	goto EXIT;
-//
-//	pjsonms = new CShJsonMS(m_hInst, m_pszSvrPrnName);
-//	if(pjsonms == NULL)
-//		goto EXIT;
-//
-//	pjsonms->SetParent(this);
-//
-//	dwCount = (*pjsonms).ReadMSCount();
-//	if(dwCount == 0)
-//		goto EXIT;
-//
-//	if(lIndex == 0){
-//		blRet = (*pjsonms).resetExToUs(lIndex);
-//	}
-//	else{
-//		pszKey = new WCHAR[SCUI_REGKEYSIZE];
-//		if(pszKey == NULL)
-//			goto EXIT;
-//
-//		SecureZeroMemory(pszKey, SCUI_REGKEYSIZE);
-//
-//		::wsprintf(pszKey, JSON_KEY_MS_ROOT_BASE_US, lIndex);
-//		CopyJsonTreeNode(pszKey,JSON_KEY_MS_ROOT_BASE);
-//	}
-//
-//EXIT:
-//	if(pjsonms != NULL)
-//		delete pjsonms;
-//
-//	if(pszKey != NULL)
-//		delete[] pszKey;
+	CShJsonMS		*pjsonms = NULL;
+	DWORD			dwCount;
+	BOOL			blRet;
+	WCHAR FAR		*pszKey = NULL;
+
+	//if(CreateObj(scui_obj_ini_mcf) == FALSE)
+	//	goto EXIT;
+
+	pjsonms = new CShJsonMS(m_hInst, m_pszSvrPrnName);
+	if(pjsonms == NULL)
+		goto EXIT;
+
+	pjsonms->SetParent(this);
+
+	dwCount = (*pjsonms).ReadMSCount();
+	if(dwCount == 0)
+		goto EXIT;
+
+	if(lIndex == 0){
+		blRet = (*pjsonms).resetExToUs(lIndex);
+	}
+	else{
+		pszKey = new WCHAR[SCUI_REGKEYSIZE];
+		if(pszKey == NULL)
+			goto EXIT;
+
+		SecureZeroMemory(pszKey, SCUI_REGKEYSIZE);
+
+		::wsprintf(pszKey, JSON_KEY_MS_ROOT_BASE_US, lIndex);
+		CopyJsonTreeNode(pszKey,JSON_KEY_MS_ROOT_BASE);
+	}
+
+EXIT:
+	if(pjsonms != NULL)
+		delete pjsonms;
+
+	if(pszKey != NULL)
+		delete[] pszKey;
 
 	return lRet;
 }
@@ -5513,43 +5513,43 @@ long CShJsonUS::ReadDataJsonMS(long lIndex)
 {
 	long			lRet = -1;
 
-//	CShJsonMS		*pjsonms = NULL;//soup
-//	DWORD			dwCount;
-//	WCHAR FAR		*pszKey = NULL;
-//
-//	//(CreateObj(scui_obj_ini_mcf) == FALSE)
-//	//	goto EXIT;
-//
-//	pjsonms = new CShJsonMS(m_hInst, m_pszSvrPrnName);
-//	if(pjsonms == NULL)
-//		goto EXIT;
-//
-//	pjsonms->SetParent(this);
-//	
-//	dwCount = (*pjsonms).ReadMSCount(JSON_KEY_MS_ROOT_BASE_US, lIndex);
-//	if(dwCount == 0)
-//	{
-//		(*pjsonms).resetEx();
-//		lRet = lIndex;
-//		goto EXIT;
-//	}
-//
-//	pszKey = new WCHAR[SCUI_REGKEYSIZE];
-//	if(pszKey == NULL)
-//		goto EXIT;
-//
-//	SecureZeroMemory(pszKey, SCUI_REGKEYSIZE);
-//
-//	::wsprintf(pszKey, JSON_KEY_MS_ROOT_BASE_US, lIndex);
-//	CopyJsonTreeNode(JSON_KEY_MS_ROOT_BASE,pszKey);
-//
-//	lRet = lIndex;
-//
-//EXIT:
-//	if(pjsonms != NULL)
-//		delete pjsonms;
-//	if(pszKey != NULL)
-//		delete[] pszKey;
+	CShJsonMS		*pjsonms = NULL;
+	DWORD			dwCount;
+	WCHAR FAR		*pszKey = NULL;
+
+	//(CreateObj(scui_obj_ini_mcf) == FALSE)
+	//	goto EXIT;
+
+	pjsonms = new CShJsonMS(m_hInst, m_pszSvrPrnName);
+	if(pjsonms == NULL)
+		goto EXIT;
+
+	pjsonms->SetParent(this);
+	
+	dwCount = (*pjsonms).ReadMSCount(JSON_KEY_MS_ROOT_BASE_US, lIndex);
+	if(dwCount == 0)
+	{
+		(*pjsonms).resetEx();
+		lRet = lIndex;
+		goto EXIT;
+	}
+
+	pszKey = new WCHAR[SCUI_REGKEYSIZE];
+	if(pszKey == NULL)
+		goto EXIT;
+
+	SecureZeroMemory(pszKey, SCUI_REGKEYSIZE);
+
+	::wsprintf(pszKey, JSON_KEY_MS_ROOT_BASE_US, lIndex);
+	CopyJsonTreeNode(JSON_KEY_MS_ROOT_BASE,pszKey);
+
+	lRet = lIndex;
+
+EXIT:
+	if(pjsonms != NULL)
+		delete pjsonms;
+	if(pszKey != NULL)
+		delete[] pszKey;
 
 	return lRet;
 }
@@ -6558,54 +6558,54 @@ long CShJsonUS::WriteShareDataMSToUS(WCHAR  *pszSvrPrnName, long lIndex, BYTE* p
 {
 	long			lRet = -1;
 
-//	CShJsonMS		*pjsonms = NULL;
-//	MARGINSHIFTDATA	msd;
-//	DWORD			dwCount;
-//	DWORD			dwDataSize;
-//	DWORD			i;
-//	BYTE			*pMSDataTmp = NULL;
-//		
-//	// ================================================
-//	// _/_/_/  パラメータチェック
-//	// ================================================
-//	if(pszSvrPrnName == NULL)
-//		goto EXIT;
-//
-//	if(pMSData == NULL || dwSize <= 0)
-//		goto EXIT;
-//
-//	pjsonms = new CShJsonMS(m_hInst, pszSvrPrnName);
-//	if(pjsonms == NULL)
-//		goto EXIT;
-//
-//	pjsonms->SetParent(this);
-//
-//	pMSDataTmp = pMSData;
-//	memcpy(&dwCount,pMSDataTmp,sizeof(dwCount));
-//	if(dwCount == 0)
-//		goto EXIT;
-//	
-//	pMSDataTmp += sizeof(dwCount);
-//
-//	dwDataSize = sizeof(dwCount) + dwCount * sizeof(MARGINSHIFTDATA);
-//	if(dwSize != dwDataSize)
-//		goto EXIT;
-//
-//	for(i=0; i < dwCount; i++)
-//	{
-//		memset(&msd, 0, sizeof(msd));
-//		memcpy(&msd,pMSDataTmp,sizeof(MARGINSHIFTDATA));
-//
-//		(*pjsonms).WriteMSDataToUs(lIndex, i, &msd);
-//		pMSDataTmp += sizeof(MARGINSHIFTDATA);
-//	}
-//		
-//	(*pjsonms).WriteMSCount(JSON_KEY_MS_ROOT_BASE_US, lIndex, dwCount);
-//	lRet = lIndex;
-//
-//EXIT:
-//	if(pjsonms != NULL)
-//		delete pjsonms;//soup
+	CShJsonMS		*pjsonms = NULL;
+	MARGINSHIFTDATA	msd;
+	DWORD			dwCount;
+	DWORD			dwDataSize;
+	DWORD			i;
+	BYTE			*pMSDataTmp = NULL;
+		
+	// ================================================
+	// _/_/_/  パラメータチェック
+	// ================================================
+	if(pszSvrPrnName == NULL)
+		goto EXIT;
+
+	if(pMSData == NULL || dwSize <= 0)
+		goto EXIT;
+
+	pjsonms = new CShJsonMS(m_hInst, pszSvrPrnName);
+	if(pjsonms == NULL)
+		goto EXIT;
+
+	pjsonms->SetParent(this);
+
+	pMSDataTmp = pMSData;
+	memcpy(&dwCount,pMSDataTmp,sizeof(dwCount));
+	if(dwCount == 0)
+		goto EXIT;
+	
+	pMSDataTmp += sizeof(dwCount);
+
+	dwDataSize = sizeof(dwCount) + dwCount * sizeof(MARGINSHIFTDATA);
+	if(dwSize != dwDataSize)
+		goto EXIT;
+
+	for(i=0; i < dwCount; i++)
+	{
+		memset(&msd, 0, sizeof(msd));
+		memcpy(&msd,pMSDataTmp,sizeof(MARGINSHIFTDATA));
+
+		(*pjsonms).WriteMSDataToUs(lIndex, i, &msd);
+		pMSDataTmp += sizeof(MARGINSHIFTDATA);
+	}
+		
+	(*pjsonms).WriteMSCount(JSON_KEY_MS_ROOT_BASE_US, lIndex, dwCount);
+	lRet = lIndex;
+
+EXIT:
+	if(pjsonms != NULL)
+		delete pjsonms;
 
 	return lRet;
 }

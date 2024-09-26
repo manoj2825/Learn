@@ -20,6 +20,7 @@
 #include "shregus.h"
 #include "shJsonus.h"
 #include "shjsonups.h"
+#include "shjsonms.h"
 #include "..\..\BitmapResource\Include\resource.h"
 #include <HtmlHelp.h>
 //For Logging Purpose
@@ -5101,7 +5102,7 @@ BOOL CDocumentPropertyPage::OnUsSelect(HWND hDlg, WCHAR* pPrinterName, DWORD wCo
 	GetProjectFileName(szCommonDatFilePath, L"Common.DAT");
 	m_pmcf = new CShIniFile(ghInstance, m_pPrinterName, szCommonDatFilePath, FALSE);
 	CShJsonUS			*pjsonus = NULL;
-
+	CShJsonMS			*pjsonms = NULL;
 	POEMDEV pPrivatetDevMode = NULL;
 	//PFEATUREINFOLIST pFeatureInfoList = NULL; //<S><D>Fix for Coverity issue 92766. Moved the declaration to Header file. Harika,20230427
 	PROPSTATE wPropertySheetState_Pre;
@@ -5145,7 +5146,12 @@ BOOL CDocumentPropertyPage::OnUsSelect(HWND hDlg, WCHAR* pPrinterName, DWORD wCo
 		pjsonus->Init();
 		if (pjsonus == NULL)
 			goto EXIT;
+		pjsonms = new CShJsonMS(ghInstance, m_pPrinterName);
+		pjsonms->Init();
 	}
+
+
+
 	/*Get the Latest index of Favorities Feature*/
 	wIndex = GetValue(hDlg, wControlID);
 
@@ -5610,6 +5616,11 @@ BOOL CDocumentPropertyPage::OnUsSelect(HWND hDlg, WCHAR* pPrinterName, DWORD wCo
 			m_pOemPrivateDevMode->scpi.ext.byMgnShift = 0; 
 			m_PropertySheetState.wMargin = m_pOemPrivateDevMode->scpi.ext.byMgnShift;
 			//<S><C> To fix feedback issue 67, Harika, 20220830
+			if ((*m_pmcf).IsWriteToJson() == TRUE)
+			{
+				pjsonms->resetEx();
+			}
+			else
 			{
 				CShRegMS regms(m_hStringResourceHandle, pPrinterName);
 				regms.resetEx(pPrinterName);
@@ -5731,6 +5742,11 @@ EXIT:
 		delete pjsonus;
 		pjsonus = NULL;
 	}
+	if (pjsonms != NULL)
+	{
+		delete pjsonms;
+		pjsonms = NULL;
+	}
 	return blRet;
 }
 //=============================================================================
@@ -5755,6 +5771,17 @@ BOOL CDocumentPropertyPage::SetMarginShiftDataToPropState(POEMDEV pPrivateDevmod
 	MARGINSHIFTDATA	msd;
 	CShRegMS FAR		*pregms = NULL;
 
+	CShIniFile			*m_pmcf = NULL;
+	TCHAR szCommonDatFilePath[_MAX_PATH] = { 0 };
+	GetProjectFileName(szCommonDatFilePath, L"Common.DAT");
+	m_pmcf = new CShIniFile(ghInstance, m_pPrinterName, szCommonDatFilePath, FALSE);
+	CShJsonMS	*pjsonms = NULL;
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		pjsonms = new CShJsonMS(ghInstance, m_pPrinterName);
+		pjsonms->Init();
+	}
+
 	if (pPropertySheetState == NULL)
 		goto EXIT;
 
@@ -5763,12 +5790,26 @@ BOOL CDocumentPropertyPage::SetMarginShiftDataToPropState(POEMDEV pPrivateDevmod
 	{
 		goto EXIT;
 	}
-	blRet = (*pregms).ReadMSData(m_pPrinterName, (*pPropertySheetState).wMargin, &msd);
-	if (blRet != TRUE)
+
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
 	{
-		(*pregms).resetEx(pPrinterName);
-		(*pregms).reset(pPrinterName);
-		(*pregms).ReadMSData(pPrinterName, (*pPropertySheetState).wMargin, &msd);
+		blRet = (*pjsonms).ReadMSData((*pPropertySheetState).wMargin, &msd);
+		if (blRet != TRUE)
+		{
+			(*pjsonms).resetEx();
+			(*pjsonms).reset();
+			(*pjsonms).ReadMSData((*pPropertySheetState).wMargin, &msd);
+		}
+	}
+	else
+	{
+		blRet = (*pregms).ReadMSData(m_pPrinterName, (*pPropertySheetState).wMargin, &msd);
+		if (blRet != TRUE)
+		{
+			(*pregms).resetEx(pPrinterName);
+			(*pregms).reset(pPrinterName);
+			(*pregms).ReadMSData(pPrinterName, (*pPropertySheetState).wMargin, &msd);
+		}
 	}
 
 	(*pPropertySheetState).wMarginUnit = (short)msd.dwUnit;
@@ -5786,6 +5827,15 @@ EXIT:
 	if (pregms != NULL) {
 		delete pregms;
 		pregms = NULL;
+	}
+	if (pjsonms != NULL) {
+		delete pjsonms;
+		pjsonms = NULL;
+	}
+	if (m_pmcf != NULL)
+	{
+		delete m_pmcf;
+		m_pmcf = NULL;
 	}
 	return blRet;
 }

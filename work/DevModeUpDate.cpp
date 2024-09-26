@@ -1,4 +1,5 @@
 #include "precomp.h"
+#include "shjsonms.h"
 
 CDevModeUpDate::CDevModeUpDate(POEMDEV pOemDevMode,
 							   PaperInfoMap PaperInfo,
@@ -1685,13 +1686,25 @@ void CDevModeUpDate::UpDateOffset(void)
 //<S><C>Modified function to update devmode variable for margin shift feature,2020.07.29 SSDI:Goutham
 void CDevModeUpDate::UpDateMarginShift(void)
 {
-	
+
 	MARGINSHIFTDATA	msd;
 	short			wShift = 0;
 	long			lDPI = 0;
 	long			lPixel = 0;
 	SHORT			wDPI = 0;
 	CShRegMS FAR		*pregms = NULL;
+
+	CShIniFile			*m_pmcf = NULL;
+	TCHAR szCommonDatFilePath[_MAX_PATH] = { 0 };
+	GetProjectFileName(szCommonDatFilePath, L"Common.DAT");
+	m_pmcf = new CShIniFile(ghInstance, m_pszSvrPrnName, szCommonDatFilePath, FALSE);
+	CShJsonMS	*pjsonms = NULL;
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		pjsonms = new CShJsonMS(ghInstance, m_pszSvrPrnName);
+		pjsonms->Init();
+	}
+
 	SecureZeroMemory(&msd, sizeof(msd));
 	if (!strcmp(m_pPrintFeatureOptionPair[m_FeatureIndex].pszOption, "None"))
 	{
@@ -1716,13 +1729,28 @@ void CDevModeUpDate::UpDateMarginShift(void)
 		goto EXIT;
 	}
 	//<S><C>To Fix #2674.2020-11-10,SSDI:Chanchal Parkash
-	DWORD dwCount = (*pregms).ReadMSCount(m_pszSvrPrnName);
-	if (dwCount <= 0)
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
 	{
-		(*pregms).reset(m_pszSvrPrnName);
-		dwCount = (*pregms).ReadMSCount(m_pszSvrPrnName);
+		DWORD dwCount = (*pjsonms).ReadMSCount();
+		if (dwCount <= 0)
+		{
+			(*pjsonms).reset();
+			dwCount = (*pjsonms).ReadMSCount();
+		}
+		(*pjsonms).ReadMSData( m_pOemPrivateDevMode->scpi.ext.byMgnShift, &msd);
+
 	}
-	(*pregms).ReadMSData(m_pszSvrPrnName, m_pOemPrivateDevMode->scpi.ext.byMgnShift, &msd);
+	else
+	{
+
+		DWORD dwCount = (*pregms).ReadMSCount(m_pszSvrPrnName);
+		if (dwCount <= 0)
+		{
+			(*pregms).reset(m_pszSvrPrnName);
+			dwCount = (*pregms).ReadMSCount(m_pszSvrPrnName);
+		}
+		(*pregms).ReadMSData(m_pszSvrPrnName, m_pOemPrivateDevMode->scpi.ext.byMgnShift, &msd);
+	}
 	wDPI = m_pOemPrivateDevMode->scpi.pub.dmPrintQuality;
 	lDPI = msd.dwDPI;
 	lPixel = msd.dwPixel;
@@ -1747,6 +1775,15 @@ EXIT:
 	if (pregms != NULL) {
 		delete pregms;
 		pregms = NULL;
+	}
+	if (pjsonms != NULL) {
+		delete pjsonms;
+		pjsonms = NULL;
+	}
+	if (m_pmcf != NULL)
+	{
+		delete m_pmcf;
+		m_pmcf = NULL;
 	}
 }
 //<S><E>Modified function to update devmode variable for margin shift feature,2020.07.29 SSDI:Goutham
