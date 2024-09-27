@@ -1,5 +1,6 @@
 #include "precomp.h"
 #include "shjsonms.h"
+#include "shjsonpp.h"
 
 CDevModeUpDate::CDevModeUpDate(POEMDEV pOemDevMode,
 							   PaperInfoMap PaperInfo,
@@ -1823,6 +1824,18 @@ void CDevModeUpDate::UpDatePrintPosition(void)
 	PRINTPOSITION	ppd;
 	PRINTPOSITION	ppdDef;
 	CShRegPP FAR		*pregPP = NULL;
+
+	CShIniFile			*m_pmcf = NULL;
+	TCHAR szCommonDatFilePath[_MAX_PATH] = { 0 };
+	GetProjectFileName(szCommonDatFilePath, L"Common.DAT");
+	m_pmcf = new CShIniFile(ghInstance, m_pszSvrPrnName, szCommonDatFilePath, FALSE);
+	CShJsonPP	*pjsonpp = NULL;
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		pjsonpp = new CShJsonPP(ghInstance, m_pszSvrPrnName);
+		pjsonpp->Init();
+	}
+
 	//-- Print Position
 	SecureZeroMemory(&ppd, sizeof(PRINTPOSITION));
 	SecureZeroMemory(&ppdDef, sizeof(PRINTPOSITION));
@@ -1832,7 +1845,14 @@ void CDevModeUpDate::UpDatePrintPosition(void)
 	{
 		goto EXIT;
 	}
-	BOOL Flag = (*pregPP).ReadPPData(m_pszSvrPrnName, &ppd);
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{ 
+		BOOL Flag = (*pjsonpp).ReadPPData(&ppd);
+	}
+	else
+	{
+		BOOL Flag = (*pregPP).ReadPPData(m_pszSvrPrnName, &ppd);
+	}
 	// --- DM_PRINTPOSITION_CHG
 	BOOL wPPosChg = m_pOemPrivateDevMode->scpi.ext.wFieldEDM & DM_PRINTPOSITION_CHG ? bool_true : bool_false;
 //<S><C>To Add the EXT2 devmode in SCDM Stucture,20201104,SSDI:Chanchal Singla
@@ -1873,6 +1893,15 @@ EXIT:
 	if (pregPP != NULL) {
 		delete pregPP;
 		pregPP = NULL;
+	}
+	if (pjsonpp != NULL) {
+		delete pjsonpp;
+		pjsonpp = NULL;
+	}
+	if (m_pmcf != NULL)
+	{
+		delete m_pmcf;
+		m_pmcf = NULL;
 	}
 }		
 //<S><A> To Update the PrintPosition Custom feature DevmodeValue,2020-08-20,SSDI:Chanchal Singla

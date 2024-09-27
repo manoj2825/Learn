@@ -27,6 +27,7 @@
 #include "DevModeUpDate.h"
 #include "regkey.h"
 #include "shjsonms.h"
+#include "shjsonpp.h"
 //For Logging Purpose
 #include "MFPLogger.h"
 #include "windowsx.h"
@@ -2369,12 +2370,26 @@ BOOL CShPrintPosition::GetDefPrintPosition(HWND hDlg)
 	PRINTPOSITION ppd;
 	short	wSel;
 	CShRegPP *pregPP = NULL;
+	CShIniFile			*m_pmcf = NULL;
+	TCHAR szCommonDatFilePath[_MAX_PATH] = { 0 };
+	GetProjectFileName(szCommonDatFilePath, L"Common.DAT");
+	m_pmcf = new CShIniFile(ghInstance, m_PszPrnName, szCommonDatFilePath, FALSE);
+	CShJsonPP	*pjsonpp = NULL;
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		pjsonpp = new CShJsonPP(ghInstance, m_PszPrnName);
+		pjsonpp->Init();
+	}
 	pregPP = new CShRegPP(m_hStringResourceHandle, m_PszPrnName);
 	if (pregPP == NULL)
 	{
 		goto EXIT;
 	}
-	pregPP->GetPPDefData(&ppd);
+
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+		pjsonpp->GetPPDefData(&ppd);
+	else
+		pregPP->GetPPDefData(&ppd);
 
 	wSel = m_ps_sub->wPPosUnit;
 
@@ -2404,6 +2419,15 @@ EXIT:
 	{
 		delete pregPP;
 		pregPP = NULL;
+	}
+	if (pjsonpp != NULL) {
+		delete pjsonpp;
+		pjsonpp = NULL;
+	}
+	if (m_pmcf != NULL)
+	{
+		delete m_pmcf;
+		m_pmcf = NULL;
 	}
 	return blRet;
 }

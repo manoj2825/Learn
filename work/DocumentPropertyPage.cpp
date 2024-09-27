@@ -21,6 +21,7 @@
 #include "shJsonus.h"
 #include "shjsonups.h"
 #include "shjsonms.h"
+#include "shjsonpp.h"
 #include "..\..\BitmapResource\Include\resource.h"
 #include <HtmlHelp.h>
 //For Logging Purpose
@@ -5861,6 +5862,18 @@ BOOL CDocumentPropertyPage::SetPPosDataToPropState(POEMDEV pPrivateDevmode, PPRO
 	BOOL			blRet = FALSE;
 	PRINTPOSITION	ppd;
 	CShRegPP FAR		*pregpp = NULL;
+
+	CShIniFile			*m_pmcf = NULL;
+	TCHAR szCommonDatFilePath[_MAX_PATH] = { 0 };
+	GetProjectFileName(szCommonDatFilePath, L"Common.DAT");
+	m_pmcf = new CShIniFile(ghInstance, pPrinterName, szCommonDatFilePath, FALSE);
+	CShJsonPP	*pjsonpp = NULL;
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		pjsonpp = new CShJsonPP(ghInstance, pPrinterName);
+		pjsonpp->Init();
+	}
+
 	pregpp = new CShRegPP(m_hStringResourceHandle, pPrinterName);
 	if (pregpp == NULL)
 	{
@@ -5873,22 +5886,47 @@ BOOL CDocumentPropertyPage::SetPPosDataToPropState(POEMDEV pPrivateDevmode, PPRO
 
 	memset(&ppd, 0x00, sizeof(PRINTPOSITION));
 
-	blRet = (*pregpp).ReadPPData(pPrinterName, &ppd);
-	if (blRet != TRUE)
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
 	{
-		(*pregpp).reset(pPrinterName);
-	}
-
-	memset(&ppd, 0x00, sizeof(PRINTPOSITION));
-	if ((*pPropertySheetState).wPPosChg == bool_false)
-	{
-		(*pregpp).GetPPDefData(&ppd);
+		blRet = (*pjsonpp).ReadPPData(&ppd);
+		if (blRet != TRUE)
+		{
+			(*pjsonpp).reset();
+		}
 	}
 	else
 	{
-		(*pregpp).ReadPPData(pPrinterName, &ppd);
+		blRet = (*pregpp).ReadPPData(pPrinterName, &ppd);
+		if (blRet != TRUE)
+		{
+			(*pregpp).reset(pPrinterName);
+		}
 	}
 
+	memset(&ppd, 0x00, sizeof(PRINTPOSITION));
+
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		if ((*pPropertySheetState).wPPosChg == bool_false)
+		{
+			(*pjsonpp).GetPPDefData(&ppd);
+		}
+		else
+		{
+			(*pjsonpp).ReadPPData(&ppd);
+		}
+	}
+	else
+	{
+		if ((*pPropertySheetState).wPPosChg == bool_false)
+		{
+			(*pregpp).GetPPDefData(&ppd);
+		}
+		else
+		{
+			(*pregpp).ReadPPData(pPrinterName, &ppd);
+		}
+	}
 
 	(*pPropertySheetState).wPPosUnit = (short)ppd.dwUnit;
 	(*pPropertySheetState).lPPosOddX = (long)ppd.wOddX;
@@ -5902,6 +5940,15 @@ EXIT:
 	if (pregpp != NULL) {
 		delete pregpp;
 		pregpp = NULL;
+	}
+	if (pjsonpp != NULL) {
+		delete pjsonpp;
+		pjsonpp = NULL;
+	}
+	if (m_pmcf != NULL)
+	{
+		delete m_pmcf;
+		m_pmcf = NULL;
 	}
 	return blRet;
 }

@@ -21,6 +21,7 @@
 #include "DevModeUpDate.h"
 #include "RegistryAPI.h"
 #include "shjsonms.h"
+#include "shjsonpp.h"
 //For Logging Purpose
 #include "MFPLogger.h"
 
@@ -2228,11 +2229,15 @@ BOOL CLayoutTabPropertyPage::UpdatePropstateToStructure()
 	GetProjectFileName(szCommonDatFilePath, L"Common.DAT");
 	m_pmcf = new CShIniFile(ghInstance, m_pPrinterName, szCommonDatFilePath, FALSE);
 	CShJsonMS	*pjsonms = NULL;
+	CShJsonPP	*pjsonpp = NULL;
 	if ((*m_pmcf).IsWriteToJson() == TRUE)
 	{
 		pjsonms = new CShJsonMS(ghInstance, m_pPrinterName);
 		pjsonms->Init();
+		pjsonpp = new CShJsonPP(ghInstance, m_pPrinterName);
+		pjsonpp->Init();
 	}
+
 
 	pregPP = new CShRegPP(m_hStringResourceHandle, m_pPrinterName);
 	if (pregPP == NULL)
@@ -2247,7 +2252,11 @@ BOOL CLayoutTabPropertyPage::UpdatePropstateToStructure()
 
 	//-- Print Position
 	SecureZeroMemory(&ppdDef, sizeof(PRINTPOSITION));
-	pregPP->GetPPDefData(&ppdDef);
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+		pjsonpp->GetPPDefData(&ppdDef);
+	else
+		pregPP->GetPPDefData(&ppdDef);
+
 	if ((ppdDef.wOddX != (short)(m_PropertySheetState.lPPosOddX)) ||
 		(ppdDef.wOddY != (short)(m_PropertySheetState.lPPosOddY)) ||
 		(ppdDef.wEvenX != (short)(m_PropertySheetState.lPPosEvnX)) ||
@@ -2259,8 +2268,16 @@ BOOL CLayoutTabPropertyPage::UpdatePropstateToStructure()
 		ppd.wEvenX = (short)m_PropertySheetState.lPPosEvnX;
 		ppd.wEvenY = (short)m_PropertySheetState.lPPosEvnY;
 		ppd.dwUnit = (short)m_PropertySheetState.wPPosUnit;
-		pregPP->WritePPData(m_pPrinterName, &ppd);
-		pregPP->WritePPCount(m_pPrinterName, 1);
+		if ((*m_pmcf).IsWriteToJson() == TRUE)
+		{
+			pjsonpp->WritePPData( &ppd);
+			pjsonpp->WritePPCount(1);
+		}
+		else
+		{
+			pregPP->WritePPData(m_pPrinterName, &ppd);
+			pregPP->WritePPCount(m_pPrinterName, 1);
+		}
 
 		m_PropertySheetState.wPPosChg = bool_true;
 
@@ -2306,6 +2323,12 @@ BOOL CLayoutTabPropertyPage::UpdatePropstateToStructure()
 			pregMS->WriteMSData(m_pPrinterName, m_PropertySheetState.wMargin, &msd);
 	}
 
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		pjsonms->WriteJsonDataToFile();
+		pjsonpp->WriteJsonDataToFile();
+	}
+
 	bRet = TRUE;
 
 EXIT:
@@ -2327,6 +2350,10 @@ EXIT:
 	{
 		delete m_pmcf;
 		m_pmcf = NULL;
+	}
+	if (pjsonpp != NULL) {
+		delete pjsonpp;
+		pjsonpp = NULL;
 	}
 	return bRet;
 }

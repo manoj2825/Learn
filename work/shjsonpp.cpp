@@ -1,22 +1,23 @@
 // ============================================================================
-// shjsonms.cpp
+// shjsonpp.cpp
 //
 //     Copyright 2022 by SHARP Corporation.
 // ----------------------------------------------------------------------------
-//                                                                  2022.03.11
+//                                                                  2022.3.17
 // ============================================================================
 
 #include <precomp.h>
 #include "shJson.h"
-#include "shjsonms.h"
+#include "shjsonpp.h"
+#include "jsonkey.h"
 
 
 #define PARENT_CLASSNAME 	CShJson
-#define MY_CLASSNAME 		CShJsonMS
+#define MY_CLASSNAME 		CShJsonPP
 
 //=============================================================================
 // function
-//      CShJsonMS
+//      CShJsonPP
 //
 // parameters
 //      hInst               モジュールハンドル
@@ -26,15 +27,14 @@
 //      無し
 //
 // outline
-//      CShJsonMS クラスコンストラクタ
+//      CShJsonPP クラスコンストラクタ
 //=============================================================================
-CShJsonMS::CShJsonMS(HINSTANCE hInst, WCHAR FAR *pszSvrPrnName/*, CShPrnLog FAR *pLog*/)
-			: CShJson(hInst, pszSvrPrnName/*, pLog*/)
+CShJsonPP::CShJsonPP(HINSTANCE hInst, WCHAR FAR *pszSvrPrnName /*CShPrnLog FAR *pLog*/)
+			: CShJson(hInst, pszSvrPrnName /*pLog*/)
 {
-	m_pmsd			= NULL;
-	m_lIndex		= -1;
-	m_lCount		= -1;
-	m_blWriteFlg	= FALSE;
+	m_pPrintPositionData = NULL;
+	m_dwCount = -1;
+	m_blWriteFlg = FALSE;
 	m_plData = NULL;
 	SetParent(this);
 }
@@ -42,7 +42,7 @@ CShJsonMS::CShJsonMS(HINSTANCE hInst, WCHAR FAR *pszSvrPrnName/*, CShPrnLog FAR 
 
 //=============================================================================
 // function
-//      ~CShJsonMS
+//      ~CShJsonPP
 //
 // parameters
 //      無し
@@ -51,12 +51,12 @@ CShJsonMS::CShJsonMS(HINSTANCE hInst, WCHAR FAR *pszSvrPrnName/*, CShPrnLog FAR 
 //      無し
 //
 // outline
-//      CShJsonMS クラスデストラクタ
+//      CShJsonPP クラスデストラクタ
 //=============================================================================
-CShJsonMS::~CShJsonMS()
+CShJsonPP::~CShJsonPP()
 {
-	if(m_pmsd != NULL){
-		delete m_pmsd;
+	if(m_pPrintPositionData != NULL){
+		delete m_pPrintPositionData;
 	}
 	if (m_plData != NULL)
 		delete[] m_plData;
@@ -76,28 +76,26 @@ CShJsonMS::~CShJsonMS()
 // outline
 //      INIファイルのデータを使用してレジストリを初期化する
 //=============================================================================
-BOOL CShJsonMS::reset()
+BOOL CShJsonPP::reset()
 {
 	BOOL			blRet = FALSE;
 
 	DWORD			dwCount = 0;
 
-	MARGINSHIFTDATA	msd;
-	
-	DWORD			i;
+	PRINTPOSITION	ppd;
 
 	// ================================================
 	// _/_/_/  既に書き込まれている場合はresetしない
 	// ================================================
-	if(ReadMSCount() > 1)
+	if(ReadPPCount() > 1)
 		return TRUE;
 
 	// ================================================
 	// _/_/_/  INIファイルクラス確定
 	// ================================================
-	//if(CreateObj(scui_obj_ini_mcf) == FALSE)
-	//	goto EXIT;
-
+	/*if(CreateObj(scui_obj_ini_mcf) == FALSE)
+		goto EXIT;
+*/
 	// ================================================
 	// _/_/_/  初期化情報取得と書き込み
 	// ================================================
@@ -105,14 +103,11 @@ BOOL CShJsonMS::reset()
 	if(dwCount == 0)
 		goto EXIT;
 
-	SecureZeroMemory(&msd, sizeof(msd));
-	for(i = 0; i < dwCount; i++)
-	{
-		GetMSDefData(i, &msd);
-		SetMSData(i, &msd);
-	}
+	SecureZeroMemory(&ppd, sizeof(ppd));
+	GetPPDefData(&ppd);
 
-	SetMSCount(dwCount);
+	SetPPData(&ppd);
+	SetPPCount(dwCount);
 
 	blRet = TRUE;
 
@@ -121,12 +116,12 @@ EXIT:
 	return blRet;
 }
 
-
 //=============================================================================
 // function
-//      resetEx
+//      resetToUs
 //
 // parameters
+//      pIniFile            CShIniFile クラスアドレス
 //
 // return value
 //      成功 : TRUE
@@ -135,28 +130,19 @@ EXIT:
 // outline
 //      INIファイルのデータを使用してレジストリを初期化する
 //=============================================================================
-BOOL CShJsonMS::resetEx()
+BOOL CShJsonPP::resetToUs(long lIndex)
 {
 	BOOL			blRet = FALSE;
 
 	DWORD			dwCount = 0;
 
-	MARGINSHIFTDATA	msd;
+	PRINTPOSITION	ppd;
 	
-	DWORD			i;
-
-	// ================================================
-	// _/_/_/  既に書き込まれている場合はresetしない
-	// ================================================
-	if(m_blWriteFlg == TRUE){
-		return TRUE;
-	}
-
 	// ================================================
 	// _/_/_/  INIファイルクラス確定
 	// ================================================
-	//if(CreateObj(scui_obj_ini_mcf) == FALSE)
-	//	goto EXIT;
+	/*if(CreateObj(scui_obj_ini_mcf) == FALSE)
+		goto EXIT;*/
 
 	// ================================================
 	// _/_/_/  初期化情報取得と書き込み
@@ -165,17 +151,10 @@ BOOL CShJsonMS::resetEx()
 	if(dwCount == 0)
 		goto EXIT;
 
-	SecureZeroMemory(&msd, sizeof(msd));
-	for(i = 0; i < dwCount; i++)
-	{
-		GetMSDefData(i, &msd);
-		
-		WriteMSData(i, &msd);
-	}
-
-	WriteMSCount(dwCount);
-
-	WriteJsonDataToFile();
+	SecureZeroMemory(&ppd, sizeof(ppd));
+	GetPPDefData(&ppd);
+	WritePPDataToUs(lIndex, &ppd);
+	WritePPCount(JSON_KEY_PP_ROOT_BASE_US, lIndex, dwCount);
 
 	blRet = TRUE;
 
@@ -186,135 +165,66 @@ EXIT:
 
 //=============================================================================
 // function
-//      resetExToUs
+//      WritePPData
 //
 // parameters
-//
-// return value
-//      成功 : TRUE
-//      失敗 : FALSE
-//
-// outline
-//      INIファイルのデータを使用してレジストリを初期化する
-//=============================================================================
-BOOL CShJsonMS::resetExToUs(long lIndex)
-{
-	BOOL			blRet = FALSE;
-
-	DWORD			dwCount = 0;
-
-	MARGINSHIFTDATA	msd;
-	
-	DWORD			i;
-
-	// ================================================
-	// _/_/_/  INIファイルクラス確定
-	// ================================================
-	//if(CreateObj(scui_obj_ini_mcf) == FALSE)
-	//	goto EXIT;
-
-	// ================================================
-	// _/_/_/  初期化情報取得と書き込み
-	// ================================================
-	dwCount = GetCountIni();
-	if(dwCount == 0)
-		goto EXIT;
-
-	SecureZeroMemory(&msd, sizeof(msd));
-	for(i = 0; i < dwCount; i++)
-	{
-		GetMSDefData(i, &msd);
-		
-		WriteMSDataToUs(lIndex, i, &msd);
-	}
-
-	WriteMSCount(JSON_KEY_MS_ROOT_BASE_US, lIndex, dwCount);
-
-	blRet = TRUE;
-
-EXIT:
-
-	return blRet;
-}
-
-//=============================================================================
-// function
-//      WriteMSData
-//
-// parameters
-//      lIndex              書き込むインデックス
-//      pwmd                書き込むMSDATA構造体アドレス
+//      pppd                書き込むPP構造体アドレス
 //
 // return value
 //      成功 : TRUE
 //      失敗 : FALE
 //
 // outline
-//      指定されたMS構造体の内容を指定のインデックスでレジストリに
+//      指定されたPP構造体の内容を指定のインデックスでレジストリに
 //      書き込む
 //=============================================================================
-BOOL CShJsonMS::WriteMSData(long lIndex, LPMARGINSHIFTDATA pmsd)
+BOOL CShJsonPP::WritePPData(LPPRINTPOSITION pppd)
 {
 	BOOL			blRet = FALSE;
 
-	WCHAR FAR		*pszKey = NULL;
-
 	// ================================================
-	// _/_/_/  MARGINSHIFTDATA確定
+	// _/_/_/  PRINTPOSITION確定
 	// ================================================
-	if(pmsd == NULL)
+	if(pppd == NULL)
 		goto EXIT;
-
-	// ================================================
-	// _/_/_/  書き込み
-	// ================================================
-	pszKey = new WCHAR[SCUI_REGKEYSIZE];
-	if(pszKey == NULL)
-		goto EXIT;
-
-	SecureZeroMemory(pszKey, SCUI_REGKEYSIZE);
-		
-	::wsprintf(pszKey, JSON_KEY_MS_INDEX_BASE, lIndex);
-
-	/*(CreateObj(scui_obj_ini_mcf) == FALSE)
+	
+	/*if(CreateObj(scui_obj_ini_mcf) == FALSE)
 		goto EXIT;*/
 	
-	blRet = xWriteMSData(pszKey,pmsd);
+	blRet = xWritePPData(JSON_KEY_PP_ROOT_BASE,pppd);
 
-	SetMSData(lIndex, pmsd);
+	SetPPData(pppd);
 
 EXIT:
-
-	if(pszKey != NULL)
-		delete[] pszKey;
 
 	return blRet;
 }
 
 //=============================================================================
 // function
-//      WriteMSDataToUs
+//      WritePPDataToUs
 //
 // parameters
 //      lIndex              書き込むインデックス
-//      pmsd                書き込むMARGINSHIFTDATA構造体アドレス
+//      pppd                書き込むPRINTPOSITION構造体アドレス
 //
 // return value
 //      成功 : TRUE
 //      失敗 : FALE
 //
 // outline
-//      指定されたMARGINSHIFTDATA構造体の内容を指定のインデックスでレジストリに
+//      指定されたPRINTPOSITION構造体の内容を指定のインデックスでレジストリに
 //      書き込む
 //=============================================================================
-BOOL CShJsonMS::WriteMSDataToUs(long lIndexUs, long lIndex, LPMARGINSHIFTDATA pmsd)
+BOOL CShJsonPP::WritePPDataToUs(long lIndexUs, LPPRINTPOSITION pppd)
 {
 	BOOL			blRet = FALSE;
 	WCHAR FAR		*pszKey = NULL;
+
 	// ================================================
-	// _/_/_/  MARGINSHIFTDATA確定
+	// _/_/_/  PRINTPOSITION確定
 	// ================================================
-	if(pmsd == NULL)
+	if(pppd == NULL)
 		goto EXIT;
 	
 	// ================================================
@@ -325,9 +235,9 @@ BOOL CShJsonMS::WriteMSDataToUs(long lIndexUs, long lIndex, LPMARGINSHIFTDATA pm
 		goto EXIT;
 
 	SecureZeroMemory(pszKey, SCUI_REGKEYSIZE);
-	::wsprintf(pszKey, JSON_KEY_MS_INDEX_BASE_US, lIndexUs, lIndex);
+	::wsprintf(pszKey, JSON_KEY_PP_ROOT_BASE_US, lIndexUs);
 
-	blRet = xWriteMSData(pszKey,pmsd);
+	blRet = xWritePPData(pszKey,pppd);
 
 EXIT:
 
@@ -337,9 +247,10 @@ EXIT:
 	return blRet;
 }
 
+
 //=============================================================================
 // function
-//      WriteMSCount
+//      WritePPCount
 //
 // parameters
 //      dwCount             書き込む値
@@ -349,22 +260,22 @@ EXIT:
 //      失敗 : FALE
 //
 // outline
-//      write the margin shift count
+//      PP数を書き込む
 //=============================================================================
-BOOL CShJsonMS::WriteMSCount(DWORD dwCount)
+BOOL CShJsonPP::WritePPCount(DWORD dwCount)
 {
 	BOOL			blRet = FALSE;
 
 	// --- count
 	if(m_pParent != NULL)
 	{
-		m_pParent->WriteJsonDWORDData(JSON_KEY_MS_ROOT_BASE, JSON_ENT_MS_COUNT, dwCount);
+		m_pParent->WriteJsonDWORDData(JSON_KEY_PP_ROOT_BASE, JSON_ENT_PP_COUNT, dwCount);
 	}
+	
+	SetPPCount(dwCount);
+	m_blWriteFlg = TRUE;
 
 	blRet = TRUE;
-
-	SetMSCount(dwCount);
-	m_blWriteFlg = TRUE;
 
 	return blRet;
 }
@@ -372,7 +283,7 @@ BOOL CShJsonMS::WriteMSCount(DWORD dwCount)
 
 //=============================================================================
 // function
-//      WriteMSCount
+//      WritePPCount
 //
 // parameters
 //      dwCount             書き込む値
@@ -382,12 +293,13 @@ BOOL CShJsonMS::WriteMSCount(DWORD dwCount)
 //      失敗 : FALE
 //
 // outline
-//      write the margin shift count
+//      PP数を書き込む
 //=============================================================================
-BOOL CShJsonMS::WriteMSCount(WCHAR FAR *pszBase, long lIndex, DWORD dwCount)
+BOOL CShJsonPP::WritePPCount(WCHAR FAR *pszBase, long lIndex, DWORD dwCount)
 {
 	BOOL			blRet = FALSE;
 	WCHAR FAR		*pszKey = NULL;
+
 	// ================================================
 	// _/_/_/  書き込み
 	// ================================================
@@ -401,7 +313,7 @@ BOOL CShJsonMS::WriteMSCount(WCHAR FAR *pszBase, long lIndex, DWORD dwCount)
 	// --- count
 	if(m_pParent != NULL)
 	{
-		m_pParent->WriteJsonDWORDData(pszKey, JSON_ENT_MS_COUNT, dwCount);
+		m_pParent->WriteJsonDWORDData(pszKey, JSON_ENT_PP_COUNT, dwCount);
 	}
 
 	blRet = TRUE;
@@ -417,131 +329,137 @@ EXIT:
 
 //=============================================================================
 // function
-//      ReadMSData
+//      ReadPPData
 //
 // parameters
-//      lIndex              読み取るインデックス
-//      pmsd                読み取るMS構造体アドレス
+//      pppd                読み取るPP構造体アドレス
 //
 // return value
 //      成功 : TRUE
 //      失敗 : FALE
 //
 // outline
-//      指定されたインデックスのMS情報をでレジストリから読み込む
+//      指定されたインデックスのPP情報をでレジストリから読み込む
 //=============================================================================
-BOOL CShJsonMS::ReadMSData(long lIndex, LPMARGINSHIFTDATA pmsd)
+BOOL CShJsonPP::ReadPPData(LPPRINTPOSITION pppd)
 {
 	BOOL			blRet = FALSE;
-	WCHAR FAR		*pszKey = NULL;
-	WCHAR FAR		*psz = NULL;
 
-	if(ReadMSCount() < (DWORD)lIndex + 1)
-		goto EXIT;
-
-	// ================================================
-	// _/_/_/  MARGINSHIFTDATA確定
-	// ================================================
-	if(pmsd == NULL)
-		goto EXIT;
-	
-	SecureZeroMemory(pmsd, sizeof(MARGINSHIFTDATA));
-
-	if(m_blWriteFlg == TRUE){
-		if(lIndex == m_lIndex){
-			memcpy(pmsd, m_pmsd, sizeof(MARGINSHIFTDATA));
-			blRet = TRUE;
+	if(m_pPrintPositionData == NULL){
+		// 未だメモリにもっていないのでレジストリから取得
+		blRet = ReadPPDataBase(pppd);
+		if(blRet == FALSE){
+			// レジストリもない
+			// エラーで返す
 			goto EXIT;
 		}
-	}
-
-	if(m_lIndex != lIndex){
-		// ================================================
-		// _/_/_/  読み込み
-		// ================================================
-		// --- dwSignature
-		psz = (WCHAR FAR *)&(*pmsd).dwSignature;
-		*psz = 'M';
-		psz++;
-		*psz = 'S';
-		psz++;
-		*psz = 'D';
-		psz++;
-		*psz = 'T';
-
-		pszKey = new WCHAR[SCUI_REGKEYSIZE];
-		if(pszKey == NULL)
+		// 取得したデータをメモリにもコピーしておく
+		m_pPrintPositionData = new PRINTPOSITION;
+		if(m_pPrintPositionData == NULL){
 			goto EXIT;
-
-		SecureZeroMemory(pszKey, SCUI_REGKEYSIZE);
-		::wsprintf(pszKey, JSON_KEY_MS_INDEX_BASE, lIndex);
-
-		blRet = xReadMSData(pszKey,pmsd);
-
-		if( ((*pmsd).dwVal == 0) &&
-			((*pmsd).dwMilli == 0) &&
-			((*pmsd).dwInch == 0) &&
-			((*pmsd).dwDPI == 0) &&
-			((*pmsd).dwPixel == 0) &&
-			((*pmsd).dwUnit == 0) ){
-			// リードに失敗している。レジストリに書かれていない
-			// デフォルト値を取得する
-			GetMSDefData(lIndex, pmsd);
 		}
-
-		SetMSData(lIndex, pmsd);
-		
+		memcpy(m_pPrintPositionData, pppd, sizeof(PRINTPOSITION));
+		m_blWriteFlg = TRUE;
 	}
 	else{
-		memcpy(pmsd, m_pmsd, sizeof(MARGINSHIFTDATA));
+		// 既にメモリにもっているのでそれを返す
+		memcpy(pppd, m_pPrintPositionData, sizeof(PRINTPOSITION));
 	}
 
 	blRet = TRUE;
-
 EXIT:
-
-	if(pszKey != NULL)
-		delete[] pszKey;
-
 	return blRet;
 }
 
+
 //=============================================================================
 // function
-//      ReadMSDataToUs
+//      ReadPPDataBase
 //
 // parameters
-//      lIndex              読み取るインデックス
-//      pmsd                読み取るMARGINSHIFTDATA構造体アドレス
+//      pppd                読み取るPP構造体アドレス
 //
 // return value
 //      成功 : TRUE
 //      失敗 : FALE
 //
 // outline
-//      指定されたインデックスのMARGINSHIFTDATA情報をでレジストリから読み込む
+//      指定されたインデックスのPP情報をでレジストリから読み込む
 //=============================================================================
-BOOL CShJsonMS::ReadMSDataToUs(long lIndexUs, long lIndex, LPMARGINSHIFTDATA pmsd)
+BOOL CShJsonPP::ReadPPDataBase(LPPRINTPOSITION pppd)
 {
 	BOOL			blRet = FALSE;
-	WCHAR FAR		*pszKey = NULL;
 	WCHAR FAR		*psz = NULL;
+
+	if(ReadPPCount() <= 0)
+		goto EXIT;
+
 	// ================================================
-	// _/_/_/  MARGINSHIFTDATA確定
+	// _/_/_/  PRINTPOSITION確定
 	// ================================================
-	if(pmsd == NULL)
+	if(pppd == NULL)
 		goto EXIT;
 	
-	SecureZeroMemory(pmsd, sizeof(MARGINSHIFTDATA));
+	SecureZeroMemory(pppd, sizeof(PRINTPOSITION));
 
 	// ================================================
 	// _/_/_/  読み込み
 	// ================================================
 	// --- dwSignature
-	psz = (WCHAR FAR *)&(*pmsd).dwSignature;
-	*psz = 'M';
+	psz = (WCHAR FAR *)&(*pppd).dwSignature;
+	*psz = 'P';
 	psz++;
-	*psz = 'S';
+	*psz = 'P';
+	psz++;
+	*psz = 'D';
+	psz++;
+	*psz = 'T';
+
+	blRet = xReadPPData(JSON_KEY_PP_ROOT_BASE,pppd);
+
+EXIT:
+
+	return blRet;
+}
+
+
+//=============================================================================
+// function
+//      ReadPPDataToUs
+//
+// parameters
+//      lIndex              読み取るインデックス
+//      pwmd                読み取るPRINTPOSITION構造体アドレス
+//
+// return value
+//      成功 : TRUE
+//      失敗 : FALE
+//
+// outline
+//      指定されたインデックスのPRINTPOSITION情報をでレジストリから読み込む
+//=============================================================================
+BOOL CShJsonPP::ReadPPDataToUs(long lIndexUs, LPPRINTPOSITION pppd)
+{
+	BOOL			blRet = FALSE;
+	WCHAR FAR		*pszKey = NULL;
+	WCHAR FAR		*psz = NULL;
+
+	// ================================================
+	// _/_/_/  PRINTPOSITION確定
+	// ================================================
+	if(pppd == NULL)
+		goto EXIT;
+	
+	SecureZeroMemory(pppd, sizeof(PRINTPOSITION));
+
+	// ================================================
+	// _/_/_/  読み込み
+	// ================================================
+	// --- dwSignature
+	psz = (WCHAR FAR *)&(*pppd).dwSignature;
+	*psz = 'P';
+	psz++;
+	*psz = 'P';
 	psz++;
 	*psz = 'D';
 	psz++;
@@ -552,9 +470,9 @@ BOOL CShJsonMS::ReadMSDataToUs(long lIndexUs, long lIndex, LPMARGINSHIFTDATA pms
 		goto EXIT;
 
 	SecureZeroMemory(pszKey, SCUI_REGKEYSIZE);
-	::wsprintf(pszKey, JSON_KEY_MS_INDEX_BASE_US, lIndexUs, lIndex);
+	::wsprintf(pszKey, JSON_KEY_PP_ROOT_BASE_US, lIndexUs);
 
-	blRet = xReadMSData(pszKey,pmsd);
+	blRet = xReadPPData(pszKey,pppd);
 
 EXIT:
 
@@ -566,38 +484,33 @@ EXIT:
 
 //=============================================================================
 // function
-//      ReadMSCount
+//      ReadPPCount
 //
 // parameters
 //
 // return value
-//      成功 : 登録MS数
+//      成功 : 登録PP数
 //      失敗 : 0
 //
 // outline
-//      MS数を読み込む
+//      PP数を読み込む
 //=============================================================================
-DWORD CShJsonMS::ReadMSCount()
+DWORD CShJsonPP::ReadPPCount()
 {
 	BOOL			blSuccess = FALSE;
 	DWORD			dwData = 0;
 
 	if(m_blWriteFlg == TRUE){
-		dwData = (DWORD)m_lCount;
+		dwData = m_dwCount;
 		goto EXIT;
 	}
-
+	
 	if(m_pParent != NULL)
-		blSuccess = m_pParent->ReadJsonDWORDData(JSON_KEY_MS_ROOT_BASE,JSON_ENT_MS_COUNT,dwData);
+		blSuccess = m_pParent->ReadJsonDWORDData(JSON_KEY_PP_ROOT_BASE,JSON_ENT_PP_COUNT,dwData);
 
-	if(blSuccess == TRUE){
+	if(blSuccess != FALSE){
 		m_blWriteFlg = TRUE;
-		m_lCount = (long)dwData;
-	}
-	else{
-		if(m_lCount != -1){
-			dwData = m_lCount;
-		}
+		m_dwCount = dwData;
 	}
 
 EXIT:
@@ -608,18 +521,18 @@ EXIT:
 
 //=============================================================================
 // function
-//      ReadMSCount
+//      ReadPPCount
 //
 // parameters
 //
 // return value
-//      成功 : 登録MS数
+//      成功 : 登録PP数
 //      失敗 : 0
 //
 // outline
-//      MS数を読み込む
+//      PP数を読み込む
 //=============================================================================
-DWORD CShJsonMS::ReadMSCount(WCHAR *pszBase, long lIndex)
+DWORD CShJsonPP::ReadPPCount(WCHAR *pszBase, long lIndex)
 {
 	BOOL			blSuccess = FALSE;
 	DWORD			dwData = 0;
@@ -637,7 +550,7 @@ DWORD CShJsonMS::ReadMSCount(WCHAR *pszBase, long lIndex)
 	::wsprintf(pszKey, pszBase, lIndex);
 
 	if(m_pParent != NULL)
-		blSuccess = m_pParent->ReadJsonDWORDData(pszKey,JSON_ENT_MS_COUNT,dwData);
+		blSuccess = m_pParent->ReadJsonDWORDData(pszKey,JSON_ENT_PP_COUNT,dwData);
 
 EXIT:
 
@@ -660,24 +573,15 @@ EXIT:
 //      失敗 : 0
 //
 // outline
-//      INIファイルのデフォルトMS個数を取得する
+//      INIファイルのデフォルトPP個数を取得する
 //=============================================================================
-DWORD CShJsonMS::GetCountIni()
+DWORD CShJsonPP::GetCountIni()
 {
 	DWORD			dwRet = 0;
 	short			wCount = 0;
 	long			*plData = NULL;
 
-	// ================================================
-	// _/_/_/  INIファイルクラス確定
-	// ================================================
-	/*if(CreateObj(scui_obj_ini_mcf) == FALSE)
-		goto EXIT;*/
-
-	// ================================================
-	// _/_/_/  個数の取得
-	// ================================================
-	//wCount = (short)(*m_pmcf).GetLongArray(MCF_SEC_PROPSETTINGS, MCF_KEY_PROP_SUP_MARGIN);
+	//wCount = (short)(*m_pmcf).GetLongArray(MCF_SEC_PROPSETTINGS, MCF_KEY_PROP_SUP_PPOS);
 	wCount = (short)GetLongArray();
 	dwRet = wCount / 5;
 
@@ -686,7 +590,7 @@ EXIT:
 	return dwRet;
 }
 
-long CShJsonMS::GetLongArray(long *plValue, long lCount)
+long CShJsonPP::GetLongArray(long *plValue, long lCount)
 {
 	MFPPrinterUI_Logger slog(__FUNCTION__"\n");
 	long			lRet = 0;
@@ -695,7 +599,7 @@ long CShJsonMS::GetLongArray(long *plValue, long lCount)
 	WCHAR			*psz = NULL;
 	WCHAR			*psz2 = NULL;
 	long			*pl = plValue;
-	WCHAR           *pszData2 = L"0, 0, 0, 600, 0, 1, 10, 4, 600, 236, 2, 20, 8, 600, 472, 3, 30, 12, 600, 708";
+	WCHAR           *pszData2 = L"0, 0, 0, 0, 0";
 
 	pszData = new WCHAR[INI_STR_MAX];
 	if (nullptr == pszData)
@@ -758,7 +662,7 @@ long CShJsonMS::GetLongArray(long *plValue, long lCount)
 	return lRet;
 }
 
-long CShJsonMS::InitLongArray(void)
+long CShJsonPP::InitLongArray(void)
 {
 	long lCount = 64;
 	if (m_plData == NULL)
@@ -772,23 +676,25 @@ long CShJsonMS::InitLongArray(void)
 	return lCount;
 }
 
+long *CShJsonPP::GetLongArrayData(void)
+{
+	return m_plData;
+}
 //=============================================================================
 // function
-//      GetMSDefData
+//      GetPPDefData
 //
 // parameters
-//      lIndex              情報を取得するインデックス
-//      pmsd                情報を受け取るMS構造体アドレス
-//      pIniFile            CShIniFile クラスアドレス
+//      pppd                情報を受け取るPP構造体アドレス
 //
 // return value
 //      成功 : TRUE
 //      失敗 : FALE
 //
 // outline
-//      指定されたINIファイルのデフォルトMSを取得する
+//      指定されたINIファイルのデフォルトPPを取得する
 //=============================================================================
-BOOL CShJsonMS::GetMSDefData(long lIndex, LPMARGINSHIFTDATA pmsd)
+BOOL CShJsonPP::GetPPDefData(LPPRINTPOSITION pppd)
 {
 	BOOL			blRet = FALSE;
 
@@ -798,141 +704,168 @@ BOOL CShJsonMS::GetMSDefData(long lIndex, LPMARGINSHIFTDATA pmsd)
 	WCHAR FAR		*pc = NULL;
 	long FAR		*pl = NULL;
 
-	long			i;
-
 	// ================================================
 	// _/_/_/  パラメータチェック
 	// ================================================
-	if(pmsd == NULL)
+	if(pppd == NULL)
 		goto EXIT;
 
 	// ================================================
 	// _/_/_/  INIファイルクラス確定
 	// ================================================
-	//if(CreateObj(scui_obj_ini_mcf) == FALSE)
-	//	goto EXIT;
+	/*if(CreateObj(scui_obj_ini_mcf) == FALSE)
+		goto EXIT;*/
 
 	// ================================================
 	// _/_/_/  情報の取得
 	// ================================================
-	if ((lCount = GetLongArray()) == 0)
+	//if((lCount = (*m_pmcf).GetLongArray(MCF_SEC_PROPSETTINGS, MCF_KEY_PROP_SUP_PPOS)) == 0)
+	//	goto EXIT;
+
+	if ((lCount = (GetLongArray()) == 0))
 		goto EXIT;
 
-	pl = m_plData;
+	pl = GetLongArrayData();
 	if(pl == NULL)
 		goto EXIT;
 
 	// ================================================
 	// _/_/_/  情報の作成
 	// ================================================
-	SecureZeroMemory(pmsd, sizeof(MARGINSHIFTDATA));
+	SecureZeroMemory(pppd, sizeof(PRINTPOSITION));
 	lPos = 0;
 
 	// --- dwSignature
-	pc = (WCHAR FAR *)&(*pmsd).dwSignature;
-	*pc = 'M';
+	pc = (WCHAR FAR *)&(*pppd).dwSignature;
+	*pc = 'P';
 	pc++;
-	*pc = 'S';
+	*pc = 'P';
 	pc++;
 	*pc = 'D';
 	pc++;
 	*pc = 'T';
 
-	for(i=0; i < lCount/5; i++)
+	// --- dwFieldPPDT
+	(*pppd).dwFieldPPDT = 0;
+
+	// --- wOddX
+	(*pppd).wOddX = (SHORT)pl[lPos++];
+
+	// --- wOddY
+	(*pppd).wOddY = (SHORT)pl[lPos++];
+
+	// --- wEvenX
+	(*pppd).wEvenX = (SHORT)pl[lPos++];
+
+	// --- wEvenY
+	(*pppd).wEvenY = (SHORT)pl[lPos++];
+
+	// --- dwUnit
+	(*pppd).dwUnit = (SHORT)pl[lPos++];
+
+	if(((*pppd).dwUnit == unit_mm) || ((*pppd).dwUnit == unit_inch))
 	{
-		if(i ==  lIndex)
+		if(GetUnitDef() != (short)(*pppd).dwUnit)
 		{
-			// --- dwVal
-			(*pmsd).dwVal = (DWORD)pl[lPos++];
-
-			// --- dwMilli
-			(*pmsd).dwMilli = (DWORD)pl[lPos++];
-
-			// --- dwInch
-			(*pmsd).dwInch = (DWORD)pl[lPos++];
-
-			// --- dwDPI
-			(*pmsd).dwDPI = (DWORD)pl[lPos++];
-
-			// --- dwPixel
-			(*pmsd).dwPixel = (DWORD)pl[lPos++];
-			
-			// --- dwUnit
-			(*pmsd).dwUnit =  GetUnitDef();
-
-			blRet = TRUE;
-			break;
-		}
-		else
-		{
-			lPos += 5;
+			if(GetUnitDef() == unit_mm)
+			{
+				(*pppd).wOddX = (short)InchToMilli_PPos((*pppd).wOddX);
+				(*pppd).wOddY = (short)InchToMilli_PPos((*pppd).wOddY);
+				(*pppd).wEvenX = (short)InchToMilli_PPos((*pppd).wEvenX);
+				(*pppd).wEvenY = (short)InchToMilli_PPos((*pppd).wEvenY);
+				(*pppd).dwUnit = unit_mm;
+			}
+			else
+			{
+				(*pppd).wOddX = (short)MilliToInch_PPos((*pppd).wOddX);
+				(*pppd).wOddY = (short)MilliToInch_PPos((*pppd).wOddY);
+				(*pppd).wEvenX = (short)MilliToInch_PPos((*pppd).wEvenX);
+				(*pppd).wEvenY = (short)MilliToInch_PPos((*pppd).wEvenY);
+				(*pppd).dwUnit = unit_inch;
+			}
 		}
 	}
+	//else if(((*pppd).dwUnit == unit_mm_2) || ((*pppd).dwUnit == unit_inch_2))
+	//{
+	//	if(GetUnitDef()+unit_mm_2 != (short)(*pppd).dwUnit)
+	//	{
+	//		if(GetUnitDef()+unit_mm_2 == unit_mm_2)
+	//		{
+	//			(*pppd).wOddX = (short)InchToMilli_PPos2((*pppd).wOddX);
+	//			(*pppd).wOddY = (short)InchToMilli_PPos2((*pppd).wOddY);
+	//			(*pppd).wEvenX = (short)InchToMilli_PPos2((*pppd).wEvenX);
+	//			(*pppd).wEvenY = (short)InchToMilli_PPos2((*pppd).wEvenY);
+	//			(*pppd).dwUnit = unit_mm_2;
+	//		}
+	//		else
+	//		{
+	//			(*pppd).wOddX = (short)MilliToInch_PPos2((*pppd).wOddX);
+	//			(*pppd).wOddY = (short)MilliToInch_PPos2((*pppd).wOddY);
+	//			(*pppd).wEvenX = (short)MilliToInch_PPos2((*pppd).wEvenX);
+	//			(*pppd).wEvenY = (short)MilliToInch_PPos2((*pppd).wEvenY);
+	//			(*pppd).dwUnit = unit_inch_2;
+	//		}
+	//	}
+	//}
+	blRet = TRUE;
 
 EXIT:
 
 	return blRet;
 }
 
-long *CShJsonMS::GetLongArrayData(void)
-{
-	return m_plData;
-}
 
 //=============================================================================
 // function
-//      SetMSData
+//      SetPPData
 //
 // parameters
-//      lIndex              書き込むインデックス
-//      pmsd                書き込むMARGINSHIFTDATA構造体アドレス
+//      pppd                書き込むPP構造体アドレス
 //
 // return value
 //      成功 : TRUE
 //      失敗 : FALE
 //
 // outline
-//      指定されたインデックスとMARGINSHIFTDATA構造体の内容をメモリに保存する
+//      指定されたPRINTPOSITION構造体の内容を指定のインデックスでレジストリに
+//      書き込む
 //=============================================================================
-BOOL CShJsonMS::SetMSData(long lIndex, LPMARGINSHIFTDATA pmsd)
+BOOL CShJsonPP::SetPPData(LPPRINTPOSITION pppd)
 {
 	BOOL			blRet = FALSE;
-	LPMARGINSHIFTDATA	pmsdWk = NULL;
+	LPPRINTPOSITION	pPrintPositionDataWk = NULL;
 
 	// ================================================
-	// _/_/_/  MARGINSHIFTDATA確定
+	// _/_/_/  パラメータチェック
 	// ================================================
-	if(pmsd == NULL)
+	if(pppd == NULL){
 		goto EXIT;
+	}
 	
-	pmsdWk = new MARGINSHIFTDATA;
-	if(pmsdWk == NULL){
+	pPrintPositionDataWk = new PRINTPOSITION;
+	if(pPrintPositionDataWk == NULL){
 		goto EXIT;
 	}
 
-	if(m_pmsd != NULL){
-		delete m_pmsd;
+	if(m_pPrintPositionData != NULL){
+		delete m_pPrintPositionData;
 	}
-	
-	m_pmsd = pmsdWk;
 
-	// ================================================
-	// _/_/_/  書き込み
-	// ================================================
-	m_lIndex = lIndex;
-	
-	memcpy(m_pmsd, pmsd, sizeof(MARGINSHIFTDATA));
+	m_pPrintPositionData = pPrintPositionDataWk;
+
+	memcpy(m_pPrintPositionData, pppd, sizeof(PRINTPOSITION));
 
 	blRet = TRUE;
 
 EXIT:
+
 	return blRet;
 }
 
 
 //=============================================================================
 // function
-//      SetMSCount
+//      SetPPCount
 //
 // parameters
 //      dwCount             書き込む値
@@ -942,11 +875,11 @@ EXIT:
 //      失敗 : FALE
 //
 // outline
-//      Margin ShiftのUserSetting数を書き込む
+//      PP数を書き込む
 //=============================================================================
-BOOL CShJsonMS::SetMSCount(DWORD dwCount)
+BOOL CShJsonPP::SetPPCount(DWORD dwCount)
 {
-	m_lCount = (long)dwCount;
+	m_dwCount = dwCount;
 	return TRUE;
 }
 
@@ -955,76 +888,75 @@ BOOL CShJsonMS::SetMSCount(DWORD dwCount)
 //      Clear
 //
 // parameters
-//      dwCount             書き込む値
 //
 // return value
 //      成功 : TRUE
 //      失敗 : FALE
 //
 // outline
-//      メンバ変数をクリアする
+//      指定されたPRINTPOSITION構造体の内容を指定のインデックスでレジストリに
+//      書き込む
 //=============================================================================
-BOOL CShJsonMS::Clear()
+BOOL CShJsonPP::Clear()
 {
-	if(m_pmsd != NULL){
-		delete m_pmsd;
-		m_pmsd = NULL;
-	}
-	m_lIndex		= -1;
-	m_lCount		= -1;
-	m_blWriteFlg	= FALSE;
+	BOOL			blRet = FALSE;
 
-	return TRUE;
+	if(m_pPrintPositionData != NULL){
+		delete m_pPrintPositionData;
+		m_pPrintPositionData = NULL;
+	}
+
+	m_dwCount = -1;
+	m_blWriteFlg = FALSE;
+	blRet = TRUE;
+
+	return blRet;
 }
 
 //=============================================================================
 // function
-//      xReadMSData
+//      xReadPPData
 //
 // parameters
-//      pszKeyPath          MS key path
-//      pmsd                読み取るMS構造体アドレス
+//      pszKeyPath          PP key path
+//      pppd                読み取るPP構造体アドレス
 //
 // return value
 //      成功 : TRUE
 //      失敗 : FALE
 //
 // outline
-//      指定されたインデックスのMS情報をでレジストリから読み込む
+//      指定されたインデックスのPP情報をでレジストリから読み込む
 //=============================================================================
-BOOL CShJsonMS::xReadMSData(WCHAR *pszKeyPath,LPMARGINSHIFTDATA pmsd)
+BOOL CShJsonPP::xReadPPData(WCHAR *pszKeyPath,LPPRINTPOSITION pppd)
 {
 	BOOL	bRet = FALSE;
 	DWORD	dwData = 0;
 	
-	if(pszKeyPath == NULL || pmsd == NULL)
+	if(pszKeyPath == NULL || pppd == NULL)
 		goto EXIT;
 
 	if(m_pParent != NULL)
 	{
-		// --- dwVal
-		m_pParent->ReadJsonDWORDData(pszKeyPath,JSON_ENT_MS_DWVAL,dwData);
-		(*pmsd).dwVal = (SHORT)dwData;
+		// --- wOddX
+		m_pParent->ReadJsonDWORDData(pszKeyPath,JSON_ENT_PP_WODDX,dwData);
+		(*pppd).wOddX = (SHORT)dwData;
 
-		// --- dwMilli
-		m_pParent->ReadJsonDWORDData(pszKeyPath,JSON_ENT_MS_DWMILLI,dwData);
-		(*pmsd).dwMilli = (LONG)dwData;
+		// --- wOddY
+		m_pParent->ReadJsonDWORDData(pszKeyPath,JSON_ENT_PP_WODDY,dwData);
+		(*pppd).wOddY = (SHORT)dwData;
 
-		// --- dwInch
-		m_pParent->ReadJsonDWORDData(pszKeyPath,JSON_ENT_MS_DWINCH,dwData);
-		(*pmsd).dwInch = (LONG)dwData;
+		// --- wEvenX
+		m_pParent->ReadJsonDWORDData(pszKeyPath,JSON_ENT_PP_WEVENX,dwData);
+		(*pppd).wEvenX = (SHORT)dwData;
 
-		// --- dwDPI
-		m_pParent->ReadJsonDWORDData(pszKeyPath,JSON_ENT_MS_DWDPI,dwData);
-		(*pmsd).dwDPI = (SHORT)dwData;
-
-		// --- dwPixel
-		m_pParent->ReadJsonDWORDData(pszKeyPath,JSON_ENT_MS_DWPIXEL,dwData);
-		(*pmsd).dwPixel = (SHORT)dwData;
+		// --- wEvenY
+		m_pParent->ReadJsonDWORDData(pszKeyPath,JSON_ENT_PP_WEVENY,dwData);
+		(*pppd).wEvenY = (SHORT)dwData;
 
 		// --- dwUnit
-		m_pParent->ReadJsonDWORDData(pszKeyPath,JSON_ENT_MS_DWUNIT,dwData);
-		(*pmsd).dwUnit = (SHORT)dwData;
+		m_pParent->ReadJsonDWORDData(pszKeyPath,JSON_ENT_PP_DWUNIT,dwData);
+		(*pppd).dwUnit = dwData;
 
 		bRet = TRUE;
 	}
@@ -1035,52 +967,48 @@ EXIT:
 
 //=============================================================================
 // function
-//      xWriteMSData
+//      xWritePPData
 //
 // parameters
-//      pszKeyPath          MS key path
-//      pmsd                読み取るMS構造体アドレス
+//      pszKeyPath          PP key path
+//      pppd                読み取るPP構造体アドレス
 //
 // return value
 //      成功 : TRUE
 //      失敗 : FALE
 //
 // outline
-//      指定されたインデックスのMS情報をでレジストリから読み込む
+//      指定されたインデックスのPP情報をでレジストリから読み込む
 //=============================================================================
-BOOL CShJsonMS::xWriteMSData(WCHAR *pszKeyPath,LPMARGINSHIFTDATA pmsd)
+BOOL CShJsonPP::xWritePPData(WCHAR *pszKeyPath,LPPRINTPOSITION pppd)
 {
 	BOOL	bRet = FALSE;
 	DWORD	dwData = 0;
-	
-	if(pszKeyPath == NULL || pmsd == NULL)
+
+	if(pszKeyPath == NULL || pppd == NULL)
 		goto EXIT;
 
 	if(m_pParent != NULL)
 	{
-		// --- dwVal
-		dwData = (*pmsd).dwVal;
-		m_pParent->WriteJsonDWORDData(pszKeyPath, JSON_ENT_MS_DWVAL, dwData);
+		// --- wOddX
+		dwData = (*pppd).wOddX;
+		m_pParent->WriteJsonDWORDData(pszKeyPath, JSON_ENT_PP_WODDX, dwData);
 
-		// --- dwMilli
-		dwData = (*pmsd).dwMilli;
-		m_pParent->WriteJsonDWORDData(pszKeyPath, JSON_ENT_MS_DWMILLI, dwData);
+		// --- wOddY
+		dwData = (*pppd).wOddY;
+		m_pParent->WriteJsonDWORDData(pszKeyPath, JSON_ENT_PP_WODDY, dwData);
 
-		// --- dwInch
-		dwData = (*pmsd).dwInch;
-		m_pParent->WriteJsonDWORDData(pszKeyPath, JSON_ENT_MS_DWINCH, dwData);
+		// --- wEvenX
+		dwData = (*pppd).wEvenX;
+		m_pParent->WriteJsonDWORDData(pszKeyPath, JSON_ENT_PP_WEVENX, dwData);
 
-		// --- dwDPI
-		dwData = (*pmsd).dwDPI;
-		m_pParent->WriteJsonDWORDData(pszKeyPath, JSON_ENT_MS_DWDPI, dwData);
-
-		// --- dwPixel
-		dwData = (*pmsd).dwPixel;
-		m_pParent->WriteJsonDWORDData(pszKeyPath, JSON_ENT_MS_DWPIXEL, dwData);
+		// --- wEvenY
+		dwData = (*pppd).wEvenY;
+		m_pParent->WriteJsonDWORDData(pszKeyPath, JSON_ENT_PP_WEVENY, dwData);
 
 		// --- dwUnit
-		dwData = (*pmsd).dwUnit;
-		m_pParent->WriteJsonDWORDData(pszKeyPath, JSON_ENT_MS_DWUNIT, dwData);
+		dwData = (*pppd).dwUnit;
+		m_pParent->WriteJsonDWORDData(pszKeyPath, JSON_ENT_PP_DWUNIT, dwData);
 
 		bRet = TRUE;
 	}
@@ -1103,7 +1031,7 @@ EXIT:
 // outline
 //     add functions name to json file path
 //=============================================================================
-void CShJsonMS::SetFunctionsJsonPath(wchar_t* wzJsonPath)
+void CShJsonPP::SetFunctionsJsonPath(wchar_t* wzJsonPath)
 {
 	::wcscat_s(wzJsonPath, MAX_PATH, JSON_FUNCTION_NAMEW_US);
 }
