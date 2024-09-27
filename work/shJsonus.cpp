@@ -14,7 +14,7 @@
 #include "shjsonups.h"
 #include "shjsonms.h"
 #include "shjsonpp.h"
-//#include "shjsonstr.h"
+#include "shjsonstr.h"
 
 
 // SCDMバージョン変更時にUserSettingの引継ぎ処理を行う
@@ -5427,29 +5427,29 @@ EXIT:
 long CShJsonUS::WriteDataJsonSTRD(long lIndex)
 {
 	long			lRet = -1;
-//	DWORD			dwFoldIndex = 0;//soup
-//	CShJsonStored		*pjson = NULL;
-//	WCHAR			szSelFolderName[512];
-//	DWORD			dwFolderSize = sizeof(szSelFolderName);
-//	::ZeroMemory(szSelFolderName, dwFolderSize);	
-//
-//	pjson = new CShJsonStored(m_hInst, m_pszSvrPrnName);
-//	if(pjson == NULL)
-//		goto EXIT;
-//
-//	(*pjson).SetParent(this);
-//
-//	(*pjson).ReadSTDData(szSelFolderName, dwFolderSize);
-//	dwFoldIndex = (*pjson).ReadLastSelectedFolderIndex();
-//	if(szSelFolderName[0] != '\0')
-//	{
-//		(*pjson).WriteSTDDataToUs(lIndex, szSelFolderName, dwFolderSize,dwFoldIndex);
-//		lRet = lIndex;
-//	}
-//
-//EXIT:
-//	if(pjson != NULL)
-//		delete pjson;
+	DWORD			dwFoldIndex = 0;
+	CShJsonStored		*pjson = NULL;
+	WCHAR			szSelFolderName[512];
+	DWORD			dwFolderSize = sizeof(szSelFolderName);
+	::ZeroMemory(szSelFolderName, dwFolderSize);	
+
+	pjson = new CShJsonStored(m_hInst, m_pszSvrPrnName, m_hStringResourceHandle);
+	if(pjson == NULL)
+		goto EXIT;
+
+	(*pjson).SetParent(this);
+
+	(*pjson).ReadSTDData(szSelFolderName, dwFolderSize);
+	dwFoldIndex = (*pjson).ReadLastSelectedFolderIndex();
+	if(szSelFolderName[0] != '\0')
+	{
+		(*pjson).WriteSTDDataToUs(lIndex, szSelFolderName, dwFolderSize,dwFoldIndex);
+		lRet = lIndex;
+	}
+
+EXIT:
+	if(pjson != NULL)
+		delete pjson;
 
 	return lRet;
 }
@@ -6628,48 +6628,48 @@ EXIT:
 //=============================================================================
 DWORD CShJsonUS::ReadUSSTRData(WCHAR  *pszSvrPrnName, long lIndex, BYTE* pSTRData)
 {
-	//CShJsonStored 	*pjsonstrd;
+	CShJsonStored 	*pjsonstrd=NULL;
 	DWORD			dwSize = 0;
-//	BOOL			blRet = FALSE;
-//	BYTE			*pSTRDataTmp = NULL;
-//	DWORD			dwFoldIndex = 0;
-//	WCHAR			szSelFolderName[512];
-//	STORED_TO_DATA	strd;
-//	DWORD			dwFolderSize = sizeof(szSelFolderName);
-//
-//	if(pszSvrPrnName == NULL)
-//		goto EXIT;
-//	
-//	pjsonstrd = new CShJsonStored(m_hInst, pszSvrPrnName);
-//	if(pjsonstrd == NULL)
-//		goto EXIT;
-//
-//	pjsonstrd->SetParent(this);
-//
-//	dwSize = sizeof(STORED_TO_DATA);			
-//	if(pSTRData == NULL)
-//	{
-//		goto EXIT;
-//	}
-//
-//	pSTRDataTmp = pSTRData;
-//
-//	memset(&strd, 0, sizeof(strd));
-// 	blRet = (*pjsonstrd).ReadSTDDataToUs(lIndex, szSelFolderName, dwFolderSize,dwFoldIndex);
-//	if(!blRet)
-//		goto EXIT;
-//
-//	    wcsncpy(strd.pszFolderName, szSelFolderName, sizeof(strd.pszFolderName) - 1);
-//		strd.pszFolderName[sizeof(strd.pszFolderName) - 1] = '\0'; // Null-terminate the string
-//
-//		strd.dwFolderIndex = dwFoldIndex;
-//		memcpy(pSTRDataTmp, &strd, sizeof(STORED_TO_DATA));
-//		pSTRDataTmp += sizeof(STORED_TO_DATA);
-//
-//
-//EXIT:
-//	if(pjsonstrd != NULL)
-//		delete pjsonstrd;//soup
+	BOOL			blRet = FALSE;
+	BYTE			*pSTRDataTmp = NULL;
+	DWORD			dwFoldIndex = 0;
+	WCHAR			szSelFolderName[512];
+	STORED_TO_DATA	strd;
+	DWORD			dwFolderSize = sizeof(szSelFolderName);
+
+	if(pszSvrPrnName == NULL)
+		goto EXIT;
+	
+	pjsonstrd = new CShJsonStored(m_hInst, pszSvrPrnName, m_hStringResourceHandle);
+	if(pjsonstrd == NULL)
+		goto EXIT;
+
+	pjsonstrd->SetParent(this);
+
+	dwSize = sizeof(STORED_TO_DATA);			
+	if(pSTRData == NULL)
+	{
+		goto EXIT;
+	}
+
+	pSTRDataTmp = pSTRData;
+
+	memset(&strd, 0, sizeof(strd));
+ 	blRet = (*pjsonstrd).ReadSTDDataToUs(lIndex, szSelFolderName, dwFolderSize,dwFoldIndex);
+	if(!blRet)
+		goto EXIT;
+
+	    wcsncpy(strd.pszFolderName, szSelFolderName, sizeof(strd.pszFolderName) - 1);
+		strd.pszFolderName[sizeof(strd.pszFolderName) - 1] = '\0'; // Null-terminate the string
+
+		strd.dwFolderIndex = dwFoldIndex;
+		memcpy(pSTRDataTmp, &strd, sizeof(STORED_TO_DATA));
+		pSTRDataTmp += sizeof(STORED_TO_DATA);
+
+
+EXIT:
+	if(pjsonstrd != NULL)
+		delete pjsonstrd;
 
 	return dwSize;
 }
@@ -6694,47 +6694,47 @@ DWORD CShJsonUS::ReadUSSTRData(WCHAR  *pszSvrPrnName, long lIndex, BYTE* pSTRDat
 long CShJsonUS::WriteShareDataSTRToUS(WCHAR  *pszSvrPrnName, long lIndex, BYTE* pSTRData, DWORD dwSize)
 {
 	long			lRet = -1;
-//	CShJsonStored 	*pjsonstrd = NULL;
-//	STORED_TO_DATA	strd;
-//	DWORD			dwCount;
-//	DWORD			dwDataSize;
-//	DWORD			i;
-//	BYTE			*pSTRDataTmp = NULL;
-//		
-//	// ================================================
-//	// _/_/_/  パラメータチェック
-//	// ================================================
-//	if(pszSvrPrnName == NULL)
-//		goto EXIT;
-//
-//	if(pSTRData == NULL || dwSize <= 0)
-//		goto EXIT;
-//
-//	pjsonstrd = new CShJsonStored(m_hInst, pszSvrPrnName);
-//	if(pjsonstrd == NULL)
-//		goto EXIT;
-//
-//	pjsonstrd->SetParent(this);
-//
-//	pSTRDataTmp = pSTRData;
-//
-//
-//	dwDataSize = sizeof(STORED_TO_DATA);
-//	if(dwSize != dwDataSize)
-//		goto EXIT;
-//
-//	memset(&strd, 0, sizeof(strd));
-//	memcpy(&strd,pSTRDataTmp,sizeof(STORED_TO_DATA));
-//
-//
-//	(*pjsonstrd).WriteSTDDataToUs(lIndex, strd.pszFolderName, sizeof(strd.pszFolderName),strd.dwFolderIndex);
-//	lRet = lIndex;
-//	pSTRDataTmp += sizeof(STORED_TO_DATA);
-//	lRet = lIndex;
-//
-//EXIT:
-//	if(pjsonstrd != NULL)
-//		delete pjsonstrd;//soup
+	CShJsonStored 	*pjsonstrd = NULL;
+	STORED_TO_DATA	strd;
+	DWORD			dwCount;
+	DWORD			dwDataSize;
+	DWORD			i;
+	BYTE			*pSTRDataTmp = NULL;
+		
+	// ================================================
+	// _/_/_/  パラメータチェック
+	// ================================================
+	if(pszSvrPrnName == NULL)
+		goto EXIT;
+
+	if(pSTRData == NULL || dwSize <= 0)
+		goto EXIT;
+
+	pjsonstrd = new CShJsonStored(m_hInst, pszSvrPrnName, m_hStringResourceHandle);
+	if(pjsonstrd == NULL)
+		goto EXIT;
+
+	pjsonstrd->SetParent(this);
+
+	pSTRDataTmp = pSTRData;
+
+
+	dwDataSize = sizeof(STORED_TO_DATA);
+	if(dwSize != dwDataSize)
+		goto EXIT;
+
+	memset(&strd, 0, sizeof(strd));
+	memcpy(&strd,pSTRDataTmp,sizeof(STORED_TO_DATA));
+
+
+	(*pjsonstrd).WriteSTDDataToUs(lIndex, strd.pszFolderName, sizeof(strd.pszFolderName),strd.dwFolderIndex);
+	lRet = lIndex;
+	pSTRDataTmp += sizeof(STORED_TO_DATA);
+	lRet = lIndex;
+
+EXIT:
+	if(pjsonstrd != NULL)
+		delete pjsonstrd;//soup
 
 	return lRet;
 }

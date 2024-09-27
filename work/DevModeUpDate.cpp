@@ -1,6 +1,7 @@
 #include "precomp.h"
 #include "shjsonms.h"
 #include "shjsonpp.h"
+#include "shjsonstr.h"
 
 CDevModeUpDate::CDevModeUpDate(POEMDEV pOemDevMode,
 							   PaperInfoMap PaperInfo,
@@ -1523,6 +1524,18 @@ void CDevModeUpDate::UpDateDocumentFilingSettings(void)
 		m_pOemPrivateDevMode->scpi.ext.JobCtrl.byDocumentFiling = docfile_custom;
 		
 		CShRegStored	*preg = NULL;
+
+		CShIniFile			*m_pmcf = NULL;
+		TCHAR szCommonDatFilePath[_MAX_PATH] = { 0 };
+		GetProjectFileName(szCommonDatFilePath, L"Common.DAT");
+		m_pmcf = new CShIniFile(ghInstance, m_pszSvrPrnName, szCommonDatFilePath, FALSE);
+		CShJsonStored	*pjsonstr = NULL;
+		if ((*m_pmcf).IsWriteToJson() == TRUE)
+		{
+			pjsonstr = new CShJsonStored(ghInstance, m_pszSvrPrnName, m_hStringResourceHandle);
+			pjsonstr->Init();
+		}
+
 		BOOL			blHasPin = FALSE;
 		WCHAR szTemp[512];
 		::SecureZeroMemory(szTemp, sizeof(szTemp));
@@ -1538,7 +1551,17 @@ void CDevModeUpDate::UpDateDocumentFilingSettings(void)
 		{
 			return ;
 		}
-		SHORT wDocFileFolder = (short)(*preg).ReadLastSelectedFolder(m_pszSvrPrnName, szTemp, sizeof(szTemp), szFilingPassword, sizeof(szFilingPassword));
+		SHORT wDocFileFolder;
+		if ((*m_pmcf).IsWriteToJson() == TRUE)
+		{
+			wDocFileFolder = (short)(*pjsonstr).ReadLastSelectedFolder(szTemp, sizeof(szTemp), szFilingPassword, sizeof(szFilingPassword));
+
+		}
+		else
+		{
+			wDocFileFolder = (short)(*preg).ReadLastSelectedFolder(m_pszSvrPrnName, szTemp, sizeof(szTemp), szFilingPassword, sizeof(szFilingPassword));
+
+		}
 		if ((*preg).ReadStrdData(m_pszSvrPrnName, (SHORT)wDocFileFolder,
 			szFilingPath, sizeof(szFilingPath), &blHasPin) == FALSE)
 		{
@@ -1563,6 +1586,16 @@ void CDevModeUpDate::UpDateDocumentFilingSettings(void)
 		//Fixed Coverity issue - 91508#1 - SSDI:Seetharam-20201005
 		delete preg;
 		preg = NULL;
+
+		if (pjsonstr != NULL) {
+			delete pjsonstr;
+			pjsonstr = NULL;
+		}
+		if (m_pmcf != NULL)
+		{
+			delete m_pmcf;
+			m_pmcf = NULL;
+		}
 	}
 }
 // <E>Updated devmode for document filling settings based on UD3.0, 20.03.24 - SSDI:Goutham
