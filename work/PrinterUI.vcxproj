@@ -408,6 +408,7 @@
     <ClCompile Include="Src\ShImageCombo.cpp" />
     <ClCompile Include="Src\ShJobControlRegistry.cpp" />
     <ClCompile Include="Src\shJson.cpp" />
+    <ClCompile Include="Src\shjsonjc.cpp" />
     <ClCompile Include="Src\shjsonms.cpp" />
     <ClCompile Include="Src\shjsonpp.cpp" />
     <ClCompile Include="Src\shjsonstr.cpp" />
@@ -601,6 +602,7 @@
     <ClInclude Include="Include\ShImageCombo.h" />
     <ClInclude Include="Include\ShJobControlRegistry.h" />
     <ClInclude Include="Include\shJson.h" />
+    <ClInclude Include="Include\shjsonjc.h" />
     <ClInclude Include="Include\shjsonms.h" />
     <ClInclude Include="Include\shjsonpp.h" />
     <ClInclude Include="Include\shjsonstr.h" />

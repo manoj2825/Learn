@@ -24,6 +24,7 @@
 #include "define.h"
 #include "RegistryAPI.h"
 #include "shjsonstr.h"
+#include "shjsonjc.h"
 #include "aes.h"
 #include <algorithm>
 #include "UtilityFunctions.h"
@@ -3054,6 +3055,18 @@ BOOL CShDlgJobHand01::SetRegJCInfoToPropState(PSCDM pscdm, PPROPSTATE pps, WCHAR
 	PREGJCINFO		pregjcinfo = NULL;
 
 	DWORD			dwSize = 0;
+
+	CShIniFile			*m_pmcf = NULL;
+	TCHAR szCommonDatFilePath[_MAX_PATH] = { 0 };
+	GetProjectFileName(szCommonDatFilePath, L"Common.DAT");
+	m_pmcf = new CShIniFile(ghInstance, pszSvrPrnName, szCommonDatFilePath, FALSE);
+	CShJsonJC	*pjsonjc = NULL;
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		pjsonjc = new CShJsonJC(ghInstance, pszSvrPrnName);
+		pjsonjc->Init();
+	}
+
 	CShRegJC *pregjc = new CShRegJC(m_hStringResourceHandle, pszSvrPrnName);
 	if (pregjc == NULL)
 	{
@@ -3076,8 +3089,16 @@ BOOL CShDlgJobHand01::SetRegJCInfoToPropState(PSCDM pscdm, PPROPSTATE pps, WCHAR
 		(*pregjcinfo).wSingleSignOn = (*pps).wLoginNameSSO;	//<S><A> To fix ssdi bug#3782, Harika 2021/5/17
 		(*pregjcinfo).wFolderIndex = (*pps).wDocFileFolder;
 
-		if ((*pregjc).ReadJCData(pszSvrPrnName, pregjcinfo, (*pps).wPPlcyWinLogin) != FALSE)
-			RegJCInfoToPropState(pregjcinfo, pps, pszSvrPrnName);
+		if ((*m_pmcf).IsWriteToJson() == TRUE)
+		{
+			if ((*pjsonjc).ReadJCData(pregjcinfo, (*pps).wPPlcyWinLogin) != FALSE)
+				RegJCInfoToPropState(pregjcinfo, pps, pszSvrPrnName);
+		}
+		else
+		{
+			if ((*pregjc).ReadJCData(pszSvrPrnName, pregjcinfo, (*pps).wPPlcyWinLogin) != FALSE)
+				RegJCInfoToPropState(pregjcinfo, pps, pszSvrPrnName);
+		}
 
 
 		blRet = TRUE;
@@ -3094,6 +3115,15 @@ EXIT:
 	{
 		delete pregjcinfo;
 		pregjcinfo = NULL;
+	}
+	if (pjsonjc != NULL) {
+		delete pjsonjc;
+		pjsonjc = NULL;
+	}
+	if (m_pmcf != NULL)
+	{
+		delete m_pmcf;
+		m_pmcf = NULL;
 	}
 	return blRet;
 }
@@ -3253,6 +3283,17 @@ BOOL CShDlgJobHand01::WriteJCdata_toReg(HWND hWnd)
 	CShRegJC		*preg = NULL;
 	short			wField = 0;
 
+	CShIniFile			*m_pmcf = NULL;
+	TCHAR szCommonDatFilePath[_MAX_PATH] = { 0 };
+	GetProjectFileName(szCommonDatFilePath, L"Common.DAT");
+	m_pmcf = new CShIniFile(ghInstance, m_pPrinterName, szCommonDatFilePath, FALSE);
+	CShJsonJC	*pjsonjc = NULL;
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		pjsonjc = new CShJsonJC(ghInstance, m_pPrinterName);
+		pjsonjc->Init();
+	}
+
 	pregjc = new REGJCINFO;
 	if (pregjc == NULL)
 		goto EXIT;
@@ -3264,11 +3305,27 @@ BOOL CShDlgJobHand01::WriteJCdata_toReg(HWND hWnd)
 	SecureZeroMemory(pregjc, sizeof(REGJCINFO));
 	
 	wField = IsSaveData();
-	if (wField != 0)
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
 	{
-		if (PropStateToRegJCInfo(&m_PropertySheetState, pregjc, m_pPrinterName) != FALSE)
-			(*preg).WriteJCData(m_pPrinterName, pregjc, wField, m_PropertySheetState.wPPlcyWinLogin);
-		res = TRUE;
+		if (wField != 0)
+		{
+			if (PropStateToRegJCInfo(&m_PropertySheetState, pregjc, m_pPrinterName) != FALSE)
+				(*pjsonjc).WriteJCData(pregjc, wField, m_PropertySheetState.wPPlcyWinLogin);
+			res = TRUE;
+		}
+	}
+	else
+	{
+		if (wField != 0)
+		{
+			if (PropStateToRegJCInfo(&m_PropertySheetState, pregjc, m_pPrinterName) != FALSE)
+				(*preg).WriteJCData(m_pPrinterName, pregjc, wField, m_PropertySheetState.wPPlcyWinLogin);
+			res = TRUE;
+		}
+	}
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		pjsonjc->WriteJsonDataToFile();
 	}
 EXIT:
 	if (pregjc != NULL)
@@ -3280,6 +3337,15 @@ EXIT:
 	{
 		delete preg;
 		preg = NULL;
+	}
+	if (pjsonjc != NULL) {
+		delete pjsonjc;
+		pjsonjc = NULL;
+	}
+	if (m_pmcf != NULL)
+	{
+		delete m_pmcf;
+		m_pmcf = NULL;
 	}
 
 	return res;

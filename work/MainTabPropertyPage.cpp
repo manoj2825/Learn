@@ -23,6 +23,7 @@
 #include "shJsonus.h"
 #include "shJsonwm.h"
 #include "shjsonups.h"
+#include "shjsonjc.h"
 //For Logging Purpose
 #include "MFPLogger.h"
 #include "aes.h"
@@ -4533,6 +4534,17 @@ LRESULT CMainTabPropertyPage::OnPsnApplyEX(HWND hWnd, long lCtrlID, LPPSHNOTIFY 
 
 	CShRegJC		*preg = NULL;
 
+	CShIniFile			*m_pmcf = NULL;
+	TCHAR szCommonDatFilePath[_MAX_PATH] = { 0 };
+	GetProjectFileName(szCommonDatFilePath, L"Common.DAT");
+	m_pmcf = new CShIniFile(ghInstance, m_pPrinterName, szCommonDatFilePath, FALSE);
+	CShJsonJC	*pjsonjc = NULL;
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		pjsonjc = new CShJsonJC(ghInstance, m_pPrinterName);
+		pjsonjc->Init();
+	}
+
 	memcpy( &m_PropertySheetState, m_ppi->pps, sizeof(PROPSTATE));
 	pregjc = new REGJCINFO;
 	if (pregjc == NULL)
@@ -4544,9 +4556,21 @@ LRESULT CMainTabPropertyPage::OnPsnApplyEX(HWND hWnd, long lCtrlID, LPPSHNOTIFY 
 
 	SecureZeroMemory(pregjc, sizeof(REGJCINFO));
 
-	if (PropStateToRegJCInfo(&m_PropertySheetState, pregjc, m_pPrinterName) != FALSE)
-		(*preg).WriteJCData(m_pPrinterName, pregjc, JC_ALL, m_PropertySheetState.wPPlcyWinLogin);
-	
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		if (PropStateToRegJCInfo(&m_PropertySheetState, pregjc, m_pPrinterName) != FALSE)
+			(*pjsonjc).WriteJCData(pregjc, JC_ALL, m_PropertySheetState.wPPlcyWinLogin);
+	}
+	else
+	{
+		if (PropStateToRegJCInfo(&m_PropertySheetState, pregjc, m_pPrinterName) != FALSE)
+			(*preg).WriteJCData(m_pPrinterName, pregjc, JC_ALL, m_PropertySheetState.wPPlcyWinLogin);
+	}
+
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		pjsonjc->WriteJsonDataToFile();
+	}
 	
 EXIT:
 	if (pregjc != NULL)
@@ -4558,6 +4582,15 @@ EXIT:
 	{
 		delete preg;
 		preg = NULL;
+	}
+	if (pjsonjc != NULL) {
+		delete pjsonjc;
+		pjsonjc = NULL;
+	}
+	if (m_pmcf != NULL)
+	{
+		delete m_pmcf;
+		m_pmcf = NULL;
 	}
 
 	return res;

@@ -22,6 +22,7 @@
 #include "shjsonups.h"
 #include "shjsonms.h"
 #include "shjsonpp.h"
+#include "shjsonjc.h"
 #include "..\..\BitmapResource\Include\resource.h"
 #include <HtmlHelp.h>
 //For Logging Purpose
@@ -1720,9 +1721,28 @@ void  CDocumentPropertyPage::SaveFeatureOptions()
 		REGJCINFO regInfo;
 		SecureZeroMemory(&regInfo, sizeof(REGJCINFO));
 		CShRegJC pregJC(m_hStringResourceHandle, m_pPrinterName);
+		CShJsonJC	*pjsonjc = NULL;
+		if ((*m_pmcf).IsWriteToJson() == TRUE)
+		{
+			pjsonjc = new CShJsonJC(ghInstance, m_pPrinterName);
+			pjsonjc->Init();
+		}
 		if (PropStateToRegJCInfo(&m_PropertySheetState, &regInfo, m_pPrinterName) != FALSE)
 		{
-			(pregJC).WriteJCData(m_pPrinterName, &regInfo, JC_ALL, m_PropertySheetState.wPPlcyWinLogin);
+			if ((*m_pmcf).IsWriteToJson() == TRUE)
+			{
+				pjsonjc->WriteJCData(&regInfo, JC_ALL, m_PropertySheetState.wPPlcyWinLogin);
+				pjsonjc->WriteJsonDataToFile();
+			}
+			else
+			{
+				(pregJC).WriteJCData(m_pPrinterName, &regInfo, JC_ALL, m_PropertySheetState.wPPlcyWinLogin);
+			}
+		}
+
+		if (pjsonjc != NULL) {
+			delete pjsonjc;
+			pjsonjc = NULL;
 		}
 	}
 	//<E>To Fix Redmine Bug #4275(2021.September.14) and Bug #4649 issue 3(2021.Feb.04),SSDI:Chanchal Singla
@@ -4103,6 +4123,17 @@ BOOL CDocumentPropertyPage::SetRegJCInfoToPropState(PSCDM pscdm, PPROPSTATE pps,
 
 	PREGJCINFO		pregjcinfo = NULL;
 
+	CShIniFile			*m_pmcf = NULL;
+	TCHAR szCommonDatFilePath[_MAX_PATH] = { 0 };
+	GetProjectFileName(szCommonDatFilePath, L"Common.DAT");
+	m_pmcf = new CShIniFile(ghInstance, pszSvrPrnName, szCommonDatFilePath, FALSE);
+	CShJsonJC	*pjsonjc = NULL;
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		pjsonjc = new CShJsonJC(ghInstance, pszSvrPrnName);
+		pjsonjc->Init();
+	}
+
 	DWORD			dwSize = 0;
 	CShRegJC *pregjc = new CShRegJC(m_hStringResourceHandle, pszSvrPrnName);
 	if (pregjc == NULL)
@@ -4125,9 +4156,17 @@ BOOL CDocumentPropertyPage::SetRegJCInfoToPropState(PSCDM pscdm, PPROPSTATE pps,
 		(*pregjcinfo).wLoginPass = (*pps).wLoginPass;
 		(*pregjcinfo).wSingleSignOn = (*pps).wLoginNameSSO;
 		(*pregjcinfo).wFolderIndex = (*pps).wDocFileFolder;
-		if ((*pregjc).ReadJCData(pszSvrPrnName, pregjcinfo, (*pps).wPPlcyWinLogin) != FALSE)
-			RegJCInfoToPropState(pregjcinfo, pps, pszSvrPrnName);
 
+		if ((*m_pmcf).IsWriteToJson() == TRUE)
+		{
+			if ((*pjsonjc).ReadJCData(pregjcinfo, (*pps).wPPlcyWinLogin) != FALSE)
+				RegJCInfoToPropState(pregjcinfo, pps, pszSvrPrnName);
+		}
+		else
+		{
+			if ((*pregjc).ReadJCData(pszSvrPrnName, pregjcinfo, (*pps).wPPlcyWinLogin) != FALSE)
+				RegJCInfoToPropState(pregjcinfo, pps, pszSvrPrnName);
+		}
 
 		blRet = TRUE;
 	}
@@ -4143,6 +4182,15 @@ EXIT:
 	{
 		delete pregjcinfo;
 		pregjcinfo = NULL;
+	}
+	if (pjsonjc != NULL) {
+		delete pjsonjc;
+		pjsonjc = NULL;
+	}
+	if (m_pmcf != NULL)
+	{
+		delete m_pmcf;
+		m_pmcf = NULL;
 	}
 	return blRet;
 }

@@ -37,6 +37,7 @@
 #include "shregus.h"
 #include "shregst.h"
 #include "shjsonups.h"
+#include "shjsonjc.h"
 #define	CLASSNAME_UD2LDUMMYWND	L"___DUMMYDIALOG___"
 #define SHDEVCAP_BINNAMES_SIZE					 24
 #define SHDEVCAP_PAPERNAMES_SIZE				64
@@ -4827,6 +4828,18 @@ BOOL COemUI2::SetRegJCInfoToPropState(HMODULE	hStringResourceHandle,PSCDM pscdm,
 
 	DWORD			dwSize = 0;
 	CShRegJC *pregjc = new CShRegJC(hStringResourceHandle, pszSvrPrnName);
+
+	CShIniFile			*m_pmcf = NULL;
+	TCHAR szCommonDatFilePath[_MAX_PATH] = { 0 };
+	GetProjectFileName(szCommonDatFilePath, L"Common.DAT");
+	m_pmcf = new CShIniFile(ghInstance, pszSvrPrnName, szCommonDatFilePath, FALSE);
+	CShJsonJC	*pjsonjc = NULL;
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		pjsonjc = new CShJsonJC(ghInstance, pszSvrPrnName);
+		pjsonjc->Init();
+	}
+
 	if (pregjc == NULL)
 	{
 		goto EXIT;
@@ -4848,8 +4861,17 @@ BOOL COemUI2::SetRegJCInfoToPropState(HMODULE	hStringResourceHandle,PSCDM pscdm,
 		(*pregjcinfo).wFolderIndex = (*pps).wDocFileFolder;
 	//	(*pregjcinfo).wSingleSignOn = (*pps).wSingleSignOn;
 		(*pregjcinfo).wSingleSignOn = (*pps).wLoginNameSSO;
-		if ((*pregjc).ReadJCData(pszSvrPrnName, pregjcinfo, (*pps).wPPlcyWinLogin) != FALSE)
-			RegJCInfoToPropState(pregjcinfo, pps, pszSvrPrnName);
+
+		if ((*m_pmcf).IsWriteToJson() == TRUE)
+		{
+			if ((*pjsonjc).ReadJCData(pregjcinfo, (*pps).wPPlcyWinLogin) != FALSE)
+				RegJCInfoToPropState(pregjcinfo, pps, pszSvrPrnName);
+		}
+		else
+		{
+			if ((*pregjc).ReadJCData(pszSvrPrnName, pregjcinfo, (*pps).wPPlcyWinLogin) != FALSE)
+				RegJCInfoToPropState(pregjcinfo, pps, pszSvrPrnName);
+		}
 
 
 		blRet = TRUE;
@@ -4866,6 +4888,15 @@ EXIT:
 	{
 		delete pregjcinfo;
 		pregjcinfo = NULL;
+	}
+	if (pjsonjc != NULL) {
+		delete pjsonjc;
+		pjsonjc = NULL;
+	}
+	if (m_pmcf != NULL)
+	{
+		delete m_pmcf;
+		m_pmcf = NULL;
 	}
 	return blRet;
 }

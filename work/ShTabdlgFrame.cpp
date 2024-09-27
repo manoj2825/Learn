@@ -11,6 +11,7 @@
 #include "shregus.h"
 #include "shJsonus.h"
 #include "shjsonups.h"
+#include "shjsonjc.h"
 //For Logging Purpose
 #include "MFPLogger.h"
 
@@ -2184,6 +2185,7 @@ BOOL CShTabDlgFrame::SetFactoryDefaults(HWND hDlg, WCHAR* pPrinterName)
 	BOOL wFlag = FALSE;
 	//========================================================================
 	CShRegJC		*pregJC = NULL;
+	CShJsonJC	*pjsonjc = NULL;
 	CRegistryAPI cRegApi;
 	POEMDEV pPrivatetDevMode = NULL;
 	PFEATUREINFOLIST pFeatureInfoList = NULL;
@@ -2236,6 +2238,13 @@ BOOL CShTabDlgFrame::SetFactoryDefaults(HWND hDlg, WCHAR* pPrinterName)
 		if (pjsonus == NULL)
 			goto EXIT;
 	}
+
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		pjsonjc = new CShJsonJC(ghInstance, m_pPrinterName);
+		pjsonjc->Init();
+	}
+
 
 	pPrivatetDevMode = new OEMDEV;
 	if (NULL == pPrivatetDevMode)
@@ -2349,7 +2358,15 @@ BOOL CShTabDlgFrame::SetFactoryDefaults(HWND hDlg, WCHAR* pPrinterName)
 		SecureZeroMemory(pregInfo, sizeof(REGJCINFO));
 		if (PropStateToRegJCInfo(&pps, pregInfo, pPrinterName) != FALSE)
 		{
-			(*pregJC).WriteJCData(pPrinterName, pregInfo, JC_ALL, pps.wPPlcyWinLogin);
+			if ((*m_pmcf).IsWriteToJson() == TRUE)
+			{
+				(*pjsonjc).WriteJCData(pregInfo, JC_ALL, pps.wPPlcyWinLogin);
+				pjsonjc->WriteJsonDataToFile();
+			}
+			else
+			{
+				(*pregJC).WriteJCData(pPrinterName, pregInfo, JC_ALL, pps.wPPlcyWinLogin);
+			}
 		}
 		//Set never show flag
 		{
@@ -2777,6 +2794,17 @@ BOOL CShTabDlgFrame::SetRegJCInfoToPropState(HMODULE	hStringResourceHandle, PSCD
 	PREGJCINFO		pregjcinfo = NULL;
 
 	DWORD			dwSize = 0;
+
+	CShIniFile			*m_pmcf = NULL;
+	TCHAR szCommonDatFilePath[_MAX_PATH] = { 0 };
+	GetProjectFileName(szCommonDatFilePath, L"Common.DAT");
+	m_pmcf = new CShIniFile(ghInstance, pszSvrPrnName, szCommonDatFilePath, FALSE);
+	CShJsonJC	*pjsonjc = NULL;
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
+	{
+		pjsonjc = new CShJsonJC(ghInstance, pszSvrPrnName);
+		pjsonjc->Init();
+	}
 	CShRegJC *pregjc = new CShRegJC(hStringResourceHandle, pszSvrPrnName);
 	if (pregjc == NULL)
 	{
@@ -2798,8 +2826,16 @@ BOOL CShTabDlgFrame::SetRegJCInfoToPropState(HMODULE	hStringResourceHandle, PSCD
 		(*pregjcinfo).wLoginPass = (*pps).wLoginPass;
 		(*pregjcinfo).wFolderIndex = (*pps).wDocFileFolder;
 
-		if ((*pregjc).ReadJCData(pszSvrPrnName, pregjcinfo, (*pps).wPPlcyWinLogin) != FALSE)
-			RegJCInfoToPropState(pregjcinfo, pps, pszSvrPrnName);
+		if ((*m_pmcf).IsWriteToJson() == TRUE)
+		{
+			if ((*pjsonjc).ReadJCData(pregjcinfo, (*pps).wPPlcyWinLogin) != FALSE)
+				RegJCInfoToPropState(pregjcinfo, pps, pszSvrPrnName);
+		}
+		else
+		{
+			if ((*pregjc).ReadJCData(pszSvrPrnName, pregjcinfo, (*pps).wPPlcyWinLogin) != FALSE)
+				RegJCInfoToPropState(pregjcinfo, pps, pszSvrPrnName);
+		}
 
 
 		blRet = TRUE;
