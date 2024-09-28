@@ -12,8 +12,8 @@
 
 //#define PARENT_CLASSNAME 	CShObjHold
 #define MY_CLASSNAME 		CShJson
-CRegistryAPI regApi;
-BOOL blDirectReg = TRUE;
+//CRegistryAPI regApi;
+//BOOL blDirectReg = TRUE;
 //=============================================================================
 // function
 //      CShJson
@@ -1256,7 +1256,7 @@ BOOL CShJson::WriteFavItemsFromJSONToHKLM(WCHAR *pszSvrPrnName)
 	BOOL	blRet = FALSE;
 	WCHAR	szFavItemTimeW[ SCUI_FILEDATETIME_STRLEN * 2] = {0};
 	WCHAR	szFavItemTitleW[_MAX_FNAME * 2] = {0};
-	WCHAR	szTime[ SCUI_FILEDATETIME_STRLEN ] = {0};
+	WCHAR	szTime[ SCUI_FILEDATETIME_STRLEN * 2] = {0};
 	DWORD	dwCount = 0;
 	DWORD	dwSize = 0;
 	DWORD	dwAllSize = 0;
@@ -1372,7 +1372,7 @@ EXIT:
 // outline
 //When client UI is openned, call this function, it is about user setting
 //=============================================================================
-BOOL CShJson::DealWithFavItemsInHKLM(WCHAR *pszSvrPrnName)
+BOOL CShJson::DealWithFavItemsInHKLMForJson(WCHAR *pszSvrPrnName)
 {
 	BOOL			res = FALSE;
 	BOOL			bShare = FALSE;
@@ -1391,7 +1391,7 @@ BOOL CShJson::DealWithFavItemsInHKLM(WCHAR *pszSvrPrnName)
 
 	if(wcslen(szTextHKLMW) > 0)
 	{
-		bShare = GetValidFlag(szTextHKLMW);
+		bShare = GetValidFlagJson(szTextHKLMW);
 		
 		//if szTextJSONW is not same to szTextHKLMW
 		if(sh_strcmp(szTextJSONW, szTextHKLMW) != 0)
@@ -1644,7 +1644,7 @@ BOOL CShJson::WriteShareDayTimeFunc(WCHAR* pszSvrPrnName, WCHAR* pszJsonBase, WC
 
 	//write to HKLM
 //	conv_wchar(szFuncKeyW,szFuncKeyA, sizeof(szFuncKeyW));
-	if(regApi.sh_SetPrinterData(pszSvrPrnName, szFuncKeyW, REG_SZ, (LPBYTE)szTextW, (DWORD)wcslen(szTextW) * 2, blDirectReg) != ERROR_SUCCESS )
+	if(sh_SetPrinterData(pszSvrPrnName, szFuncKeyW, REG_SZ, (LPBYTE)szTextW, (DWORD)wcslen(szTextW) * 2/*, blDirectReg*/) != ERROR_SUCCESS )
 		goto EXIT;
 
 
@@ -1830,7 +1830,7 @@ BOOL CShJson::ReadShareDayTimeFuncFromHKLM(WCHAR  *pszSvrPrnName, WCHAR  *pszFun
 
 	//conv_wchar(szFuncKeyW, szFuncKeyW, sizeof(szFuncKeyW));
 
-	if(regApi.sh_GetPrinterData(pszSvrPrnName, szFuncKeyW,  &dwType, (LPBYTE)pszText, dwTextSize, &dwNeeded) != ERROR_SUCCESS)
+	if(sh_GetPrinterData(pszSvrPrnName, szFuncKeyW,  &dwType, (LPBYTE)pszText, dwTextSize, &dwNeeded) != ERROR_SUCCESS)
 		goto EXIT;
 
 
@@ -1854,7 +1854,7 @@ EXIT:
 // outline
 //     Read the valid flag from pszText
 //=============================================================================
-BOOL CShJson::GetValidFlag(WCHAR  *pszText)
+BOOL CShJson::GetValidFlagJson(WCHAR  *pszText)
 {
 	BOOL bValid = FALSE;
 	WCHAR szValue[4] = {0};
@@ -1958,26 +1958,26 @@ BOOL CShJson::WriteShareData(WCHAR  *pszSvrPrnName, WCHAR  *pszFunName, BYTE* pS
 {
 	BOOL		bRet = FALSE;
 
-	WCHAR		szKeyA[REG_ENT_SHARE_KEYSIZEA] = {0};
+	//WCHAR		szKeyA[REG_ENT_SHARE_KEYSIZEA] = {0};
 	WCHAR		szKeyW[REG_ENT_SHARE_KEYSIZEW] = {0};
-	WCHAR		szSizeKeyA[REG_ENT_SHARE_KEYSIZEA] = {0};
+	//WCHAR		szSizeKeyA[REG_ENT_SHARE_KEYSIZEA] = {0};
 	WCHAR		szSizeKeyW[REG_ENT_SHARE_KEYSIZEW] = {0};
 
 	if(pszSvrPrnName == NULL || pszFunName == NULL)
 		goto EXIT;
 	
-	::wsprintf(szKeyA,L"%s_%s",REG_ENT_SHARE_DAYTIME,pszFunName);
-	::wsprintf(szSizeKeyA,L"%s_%s",szKeyA,REG_ENT_SHARE_SIZE);
+	::wsprintf(szKeyW,L"%s_%s",REG_ENT_SHARE_DAYTIME,pszFunName);
+	::wsprintf(szSizeKeyW,L"%s_%s", szKeyW,REG_ENT_SHARE_SIZE);
 
 	/*convert_wchar(szKeyW, szKeyA, sizeof(szKeyW));
 	convert_wchar(szSizeKeyW,szSizeKeyA, sizeof(szSizeKeyW));*/
 	
-	if(regApi.sh_SetPrinterData(pszSvrPrnName, szSizeKeyW, REG_DWORD, (LPBYTE)&dwSize, sizeof(DWORD), blDirectReg) != ERROR_SUCCESS)
+	if(sh_SetPrinterData(pszSvrPrnName, szSizeKeyW, REG_DWORD, (LPBYTE)&dwSize, sizeof(DWORD)/*, blDirectReg*/) != ERROR_SUCCESS)
 		goto EXIT;
 
 	if(pShareFav != NULL)
 	{
-		if(regApi.sh_SetPrinterData(pszSvrPrnName, szKeyW, REG_BINARY, pShareFav, dwSize, blDirectReg) != ERROR_SUCCESS)
+		if(sh_SetPrinterData(pszSvrPrnName, szKeyW, REG_BINARY, pShareFav, dwSize/*, blDirectReg*/) != ERROR_SUCCESS)
 			goto EXIT;
 	}
 
@@ -1986,6 +1986,210 @@ BOOL CShJson::WriteShareData(WCHAR  *pszSvrPrnName, WCHAR  *pszFunName, BYTE* pS
 EXIT:
 
 	return bRet;
+}
+
+DWORD CShJson::sh_GetPrinterData(WCHAR FAR *pszSvrPrnName, LPTSTR pValueName, LPDWORD pType,
+	LPBYTE pData, DWORD nSize, LPDWORD pcbNeeded, BOOL blDirectReg, DWORD dwlevel, HANDLE h_Printer)
+{
+	DWORD			dwRet = 0xffffffff;
+	DWORD			dwCount = 0;	// retry counter
+	DWORD			dwTime = 0;	// sleep time
+	DWORD			dwTryCount = 1;
+
+#ifdef _WIN32
+
+	HANDLE			hPrinter = h_Printer;
+
+	PRINTER_DEFAULTS	pd;
+
+	pd.pDatatype = NULL;
+	pd.pDevMode = NULL;
+	pd.DesiredAccess = PRINTER_ACCESS_USE;
+
+	if (h_Printer == NULL)
+	{
+		if (sh_OpenPrinter(pszSvrPrnName, &hPrinter, &pd) == FALSE)
+			return dwRet;
+	}
+
+	if (hPrinter == NULL)
+		return dwRet;
+
+	if (dwlevel == level_1)
+	{
+		dwTryCount = 100; // MCFから、取得するように変更する予定
+		dwTime = 100; // MCFから、取得するように変更する予定
+	}
+	else if (dwlevel == level_2)
+	{
+		dwTryCount = 50;  // MCFから、取得するように変更する予定
+		dwTime = 50;  // MCFから、取得するように変更する予定
+	}
+	if (IsUnicodeOS())
+	{
+		for (; dwCount < dwTryCount; dwCount++)
+		{
+			dwRet = ::GetPrinterDataW(hPrinter, (LPWSTR)pValueName, pType, pData, nSize, pcbNeeded);
+			if (dwRet == ERROR_SUCCESS)
+			{
+				break;
+			}
+			::Sleep(dwTime);
+		}
+	}
+	else
+	{
+		for (; dwCount < dwTryCount; dwCount++)
+		{
+			dwRet = ::GetPrinterData(hPrinter, pValueName, pType, pData, nSize, pcbNeeded);
+			if (dwRet == ERROR_SUCCESS)
+			{
+				break;
+			}
+			::Sleep(dwTime);
+		}
+	}
+
+	if (h_Printer == NULL)
+	{
+		if (hPrinter != NULL)
+			::ClosePrinter(hPrinter);
+	}
+#else
+
+	if (blDirectReg == FALSE)
+	{
+		if (dwlevel == level_1)
+		{
+			dwTryCount = 100; // MCFから、取得するように変更する予定
+			dwTime = 100; // MCFから、取得するように変更する予定
+		}
+		else if (dwlevel == level_2)
+		{
+			dwTryCount = 50;  // MCFから、取得するように変更する予定
+			dwTime = 50;  // MCFから、取得するように変更する予定
+		}
+
+		for (; dwCount < dwTryCount; dwCount++)
+		{
+			dwRet = DrvGetPrinterData(pszSvrPrnName, (LPSTR)pValueName, pType, (LPBYTE)pData, nSize, pcbNeeded);
+			if (dwRet == ERROR_SUCCESS)
+			{
+				break;
+			}
+			::Sleep(dwTime);
+		}
+	}
+	else
+	{
+		DWORD			dwSize;
+
+		char FAR		*pszKey = NULL;
+		char FAR		*psz = NULL;
+
+		CShReg			reg(NULL, pszSvrPrnName, NULL);
+
+		if (pszSvrPrnName == NULL || pValueName == NULL)
+			goto EXIT;
+
+		pszKey = new char[SCUI_REGKEYSIZE];
+		if (pszKey == NULL)
+			goto EXIT;
+
+		memset(pszKey, 0x00, SCUI_REGKEYSIZE);
+
+		convert_wchar(pszKey, REG_KEY_CCS_PDD, SCUI_REGKEYSIZE);
+		psz = GetPrinterNameAddr(NULL, pszSvrPrnName);
+		if (reg.CreateRegPath(REG_KEY_CCS_PDD, pszKey, SCUI_REGKEYSIZE, psz) == FALSE)
+			goto EXIT;
+
+		dwSize = nSize;
+		if (reg.ReadRegData(HKEY_LOCAL_MACHINE, pszKey, pValueName, *pType, (char FAR *)pData, &dwSize) != FALSE)
+			dwRet = ERROR_SUCCESS;
+
+	EXIT:
+
+		if (pszKey != NULL)
+			delete[] pszKey;
+	}
+
+#endif
+
+	return dwRet;
+}
+
+DWORD CShJson::sh_SetPrinterData(WCHAR FAR *pszSvrPrnName, LPTSTR pValueName, DWORD Type, LPBYTE pData, DWORD nSize, BOOL blDirectReg)
+{
+	DWORD			dwRet = 0xffffffff;
+
+#ifdef _WIN32
+
+	HANDLE			hPrinter = NULL;
+
+	PRINTER_DEFAULTS	pd;
+
+	pd.pDatatype = NULL;
+	pd.pDevMode = NULL;
+	pd.DesiredAccess = PRINTER_ACCESS_ADMINISTER;
+
+	if (sh_OpenPrinter(pszSvrPrnName, &hPrinter, &pd) == FALSE)
+		return dwRet;
+
+	if (hPrinter == NULL)
+		return dwRet;
+
+	//if (IsUnicodeOS())
+	//{
+	//	dwRet = ::SetPrinterDataW(hPrinter, (LPWSTR)pValueName, Type, pData, nSize);
+	//}
+	//else
+	{
+		dwRet = ::SetPrinterData(hPrinter, pValueName, Type, pData, nSize);
+	}
+
+	if (hPrinter != NULL)
+		::ClosePrinter(hPrinter);
+
+#else
+
+	if (blDirectReg == FALSE)
+	{
+		dwRet = DrvSetPrinterData(pszSvrPrnName, (LPSTR)pValueName, Type, (LPBYTE)pData, nSize);
+	}
+	else
+	{
+		char FAR		*pszKey = NULL;
+		char FAR		*psz = NULL;
+
+		CShReg			reg(NULL, pszSvrPrnName, NULL);
+
+		if (pszSvrPrnName == NULL || pValueName == NULL)
+			goto EXIT;
+
+		pszKey = new char[SCUI_REGKEYSIZE];
+		if (pszKey == NULL)
+			goto EXIT;
+
+		memset(pszKey, 0x00, SCUI_REGKEYSIZE);
+
+		//convert_wchar(pszKey, REG_KEY_CCS_PDD, SCUI_REGKEYSIZE);
+		wcscpy_s(pszKey, SCUI_REGKEYSIZE, REG_KEY_CCS_PDD);
+		psz = GetPrinterNameAddr(NULL, pszSvrPrnName);
+		if (reg.CreateRegPath(REG_KEY_CCS_PDD, pszKey, SCUI_REGKEYSIZE, psz) == FALSE)
+			goto EXIT;
+
+		if (reg.WriteRegData(HKEY_LOCAL_MACHINE, pszKey, pValueName, Type, (char FAR *)pData, nSize) != FALSE)
+			dwRet = ERROR_SUCCESS;
+
+	EXIT:
+
+		if (pszKey != NULL)
+			delete[] pszKey;
+	}
+
+#endif
+
+	return dwRet;
 }
 
 //=============================================================================
@@ -2042,13 +2246,8 @@ DWORD CShJson::ReadShareData(WCHAR  *pszSvrPrnName, WCHAR  *pszFunName, BYTE* pS
 	::wsprintf(szKeyW,L"%s_%s",REG_ENT_SHARE_DAYTIME,pszFunName);
 	::wsprintf(szSizeKeyW,L"%s_%s", szKeyW,REG_ENT_SHARE_SIZE);
 
-	/*convert_wchar(szKeyW, szKeyA, sizeof(szKeyW));
-	convert_wchar(szSizeKeyW,szSizeKeyA, sizeof(szSizeKeyW));*/
-	//conv_wchar(szKeyW, szKeyA, sizeof(szKeyW));
-	//conv_wchar(szSizeKeyW, szSizeKeyA, sizeof(szSizeKeyW));
-	//sh_GetPrinterData(
 	
-	if(regApi.sh_GetPrinterData(pszSvrPrnName, szSizeKeyW,  &dwType, (LPBYTE)&dwSize, sizeof(dwSize), &dwNeeded) != ERROR_SUCCESS)
+	if(sh_GetPrinterData(pszSvrPrnName, szSizeKeyW,  &dwType, (LPBYTE)&dwSize, sizeof(dwSize), &dwNeeded) != ERROR_SUCCESS)
 		goto EXIT;
 
 	if(pShareFav == NULL)
@@ -2057,7 +2256,7 @@ DWORD CShJson::ReadShareData(WCHAR  *pszSvrPrnName, WCHAR  *pszFunName, BYTE* pS
 		goto EXIT;
 	}
 	dwType = REG_BINARY;
-	if(regApi.sh_GetPrinterData(pszSvrPrnName, szKeyW,  &dwType, pShareFav, dwSize, &dwNeeded) != ERROR_SUCCESS)
+	if(sh_GetPrinterData(pszSvrPrnName, szKeyW,  &dwType, pShareFav, dwSize, &dwNeeded) != ERROR_SUCCESS)
 		goto EXIT;
 
 	dwRet = dwSize;

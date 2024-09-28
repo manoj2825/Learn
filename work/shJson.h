@@ -57,10 +57,13 @@ public:
 	BOOL DeleteChildItemData(const WCHAR* pszKeyPath, DWORD dwIndex);
 
 	virtual void SelectTheCorrectFavItemJson(WCHAR* pszName, short& wIndex);
-	
+	DWORD sh_GetPrinterData(WCHAR FAR *pszSvrPrnName, LPTSTR pValueName, LPDWORD pType,
+		LPBYTE pData, DWORD nSize, LPDWORD pcbNeeded, BOOL blDirectReg = FALSE, DWORD dwlevel = 0, HANDLE h_Printer = NULL);
+	DWORD sh_SetPrinterData(WCHAR FAR *pszSvrPrnName, LPTSTR pValueName, DWORD Type,
+		LPBYTE pData, DWORD nSize, BOOL blDirectReg = FALSE);
 // <S><A> 2022.04.13 Jelly for cr5 function2
 	virtual BOOL WriteFavItemsFromJSONToHKLM(WCHAR *pszSvrPrnName);
-	virtual BOOL DealWithFavItemsInHKLM(WCHAR *pszSvrPrnName);
+	virtual BOOL DealWithFavItemsInHKLMForJson(WCHAR *pszSvrPrnName);
 	virtual BOOL WriteShareDayTimeFunc(WCHAR *pszSvrPrnName, WCHAR* pszDayTime, BOOL bValid);
 	virtual BOOL WriteShareDayTimeFuncToJSON(WCHAR *pszSvrPrnName, WCHAR *pszText, DWORD dwSize);
 	virtual BOOL ReadShareDayTimeFuncFromJSON(WCHAR *pszSvrPrnName, WCHAR *pszText, DWORD dwTextSize);
@@ -72,7 +75,7 @@ public:
 	virtual BOOL GetSelfFlag(long lIndex);
 	virtual void DeleteData(short wIndex);
 
-	BOOL GetValidFlag(WCHAR *pszText);
+	BOOL GetValidFlagJson(WCHAR *pszText);
 	BOOL GetShareDayTimeStamp(WCHAR *pszText, WCHAR *pszTime);
 	WCHAR FAR		*m_pszSvrPrnName;
 // <S><C> 2022.08.30 sbc R.Tanaka

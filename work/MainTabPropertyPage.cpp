@@ -148,10 +148,14 @@ CMainTabPropertyPage::InitializeUIControls(
 	HRESULT hr = S_OK;
 	m_hPropertySheetHandle = hDlg;
 
-	CShJson*	json = new CShJson(ghInstance, m_pPrinterName);
-	CShJsonWm*	jsonwm = new CShJsonWm(ghInstance, m_pPrinterName, m_hStringResourceHandle);
-	json->Init();
-	jsonwm->Init();
+	CShIniFile			*m_pmcf = NULL;
+	TCHAR szCommonDatFilePath[_MAX_PATH] = { 0 };
+	GetProjectFileName(szCommonDatFilePath, L"Common.DAT");
+	m_pmcf = new CShIniFile(ghInstance, m_pPrinterName, szCommonDatFilePath, FALSE);
+	//CShJson*	json = new CShJson(ghInstance, m_pPrinterName);
+	//CShJsonWm*	jsonwm = new CShJsonWm(ghInstance, m_pPrinterName, m_hStringResourceHandle);
+	//json->Init();
+	//jsonwm->Init();
 	CreateMessageClass(hDlg);
 	
 	if (!IsDlgButtonChecked(hDlg, IDC_CHK_PIN))
@@ -193,10 +197,7 @@ CMainTabPropertyPage::InitializeUIControls(
 //<S><E> Bug 2169 - Issue1 - 20200629 - SSDI:Seetharam
 	//<S><A> To Added Support  of Custom Paper, 24-07-2020,SSDI:Chanchal Singla
 	{
-		CShIniFile			*m_pmcf = NULL;
-		TCHAR szCommonDatFilePath[_MAX_PATH] = { 0 };
-		GetProjectFileName(szCommonDatFilePath, L"Common.DAT");
-		m_pmcf = new CShIniFile(ghInstance, m_pPrinterName, szCommonDatFilePath, FALSE);
+
 		CShJsonUserPSize	*pjsonups = NULL;
 		if ((*m_pmcf).IsWriteToJson() == TRUE)
 		{
@@ -242,11 +243,7 @@ CMainTabPropertyPage::InitializeUIControls(
 			delete pregUps;
 			pregUps = NULL;
 
-			if (m_pmcf != NULL)
-			{
-				delete m_pmcf;
-				m_pmcf = NULL;
-			}
+
 			if (pjsonups != NULL)
 			{
 				delete pjsonups;
@@ -263,14 +260,26 @@ CMainTabPropertyPage::InitializeUIControls(
 //<E>Updating PROPSTATE variable for Reference point(Zoom Basing), 2020.09.02, SSDI:Sneha TG
 	 __super::InitializeUIControls(hDlg);
 	 __super::SelectOptionsonUI(hDlg, m_pOemPrivateDevMode);
-	 //<S><A>To Implement Task#3114,13-09-2024,SSDI:Manoj S
-	 DealWithFavItemsInHKLM();
-	 //<E>To Implement Task #3114,13-09-2024,SSDI:Manoj S
-
-	 if (json != NULL)
+	 if ((*m_pmcf).IsWriteToJson() == TRUE)
 	 {
-		 delete json;
-		 json = nullptr;
+		 DealWithFavItemsInHKLMForJson();
+	 }
+	 else
+	 {
+		 //<S><A>To Implement Task#3114,13-09-2024,SSDI:Manoj S
+		 DealWithFavItemsInHKLM();
+		 //<E>To Implement Task #3114,13-09-2024,SSDI:Manoj S
+	 }
+
+	 //if (json != NULL)
+	 //{
+		// delete json;
+		// json = nullptr;
+	 //}
+	 if (m_pmcf != NULL)
+	 {
+		 delete m_pmcf;
+		 m_pmcf = NULL;
 	 }
 	 return hr;
 }

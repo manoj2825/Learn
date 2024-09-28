@@ -1232,7 +1232,8 @@ BOOL CShJsonStored::ReadSTDData(WCHAR FAR *pszFolderName, DWORD& dwFolderSize)
 		goto EXIT;
 
 	// --- folder name
-	blRet = m_pParent->ReadJsonStrData(JSON_KEY_STRD_ROOT_BASE, JSON_ENT_STRD_LASTSEL,pszFolderName, dwFolderSize,TRUE);
+	//blRet = m_pParent->ReadJsonStrData(JSON_KEY_STRD_ROOT_BASE, JSON_ENT_STRD_LASTSEL,pszFolderName, dwFolderSize,TRUE);
+	blRet = m_pParent->ReadJsonStrData(JSON_KEY_STRD_ROOT_BASE, JSON_ENT_STRD_LASTSEL, pszFolderName, dwFolderSize, FALSE);
 
 EXIT:
 

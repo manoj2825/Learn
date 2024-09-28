@@ -263,7 +263,7 @@ long CShJsonUS::WriteData(WCHAR FAR *pszTitle, PSCDM pscdm, PGPDFEATUREOPTIONLIS
 	//GetFeatureinfoFromGPDFeatureOptionList(pFeatureInfoList, pFeatureList, lIndex);
 
 	//if(lRet != -1)
-	//	WriteEachData(pscdm, pFeatureInfoList,(long)dwID);
+	//	WriteEachData(pscdm, pFeatureList,(long)dwID);
 
 	long lRetReg = -1;
 
@@ -6056,6 +6056,9 @@ DWORD CShJsonUS::ReadFavDataFromJSON(WCHAR  *pszSvrPrnName, BYTE* pShareFavData,
 		goto EXIT;
 	SecureZeroMemory(pscdm, sizeof(SCDM)); 
 
+	GPDFEATUREOPTIONLIST pFeatureOptionsList;
+	SecureZeroMemory(&pFeatureOptionsList, sizeof(pFeatureOptionsList));
+
 	pShareFavHeader = new ShareFavHeader;
 	if(pShareFavHeader == NULL)
 		goto EXIT;
@@ -6070,8 +6073,8 @@ DWORD CShJsonUS::ReadFavDataFromJSON(WCHAR  *pszSvrPrnName, BYTE* pShareFavData,
 		pShareFavHeader->dwScdmSize = sizeof(SCDM);
 		pShareFavHeader->dwSize += pShareFavHeader->dwScdmSize;
 
-		pShareFavHeader->dwChapterInsertSize = (SCUI_CHPINSPAGE_BUFSIZE + 1) * 2;
-		pShareFavHeader->dwSize += pShareFavHeader->dwChapterInsertSize;
+		pShareFavHeader->dwFeatureInfolistSize = sizeof(GPDFEATUREOPTIONLIST);
+		pShareFavHeader->dwSize += pShareFavHeader->dwFeatureInfolistSize;
 
 		//margin shift
 		pShareFavHeader->dwMarginShiftSize = ReadUSMSData(pszSvrPrnName,lIndex,NULL);
@@ -6094,35 +6097,11 @@ DWORD CShJsonUS::ReadFavDataFromJSON(WCHAR  *pszSvrPrnName, BYTE* pShareFavData,
 			pShareFavHeader->dwSize += pShareFavHeader->dwPrintPositionSize;
 		}	
 
-		//trimming
-		//pShareFavHeader->dwTrimmingSize = ReadUSTRData(pszSvrPrnName,lIndex,NULL);
-		//if(pShareFavHeader->dwTrimmingSize > 0)
+		//pShareFavHeader->dwStoredToSize = ReadUSSTRData(pszSvrPrnName,lIndex,NULL);//aqua
+		//if(pShareFavHeader->dwStoredToSize > 0)
 		//{
-		//	pShareFavHeader->dwSize += pShareFavHeader->dwTrimmingSize;
-		//}	
-
-		//custom pamphlet
-		//pShareFavHeader->dwCPMSize = ReadUSCPMData(pszSvrPrnName,lIndex,NULL);
-		//if(pShareFavHeader->dwCPMSize > 0)
-		//{
-		//	pShareFavHeader->dwSize += pShareFavHeader->dwCPMSize;
-		//}	
-
-		////tab shift
-		//pShareFavHeader->dwTabShiftSize = ReadUSTSData(pszSvrPrnName,lIndex,NULL);
-		//if(pShareFavHeader->dwTabShiftSize > 0)
-		//{
-		//	pShareFavHeader->dwSize += pShareFavHeader->dwTabShiftSize;
-		//}	
-		
-		// <S><A> 2024.02.15,To Fix Feedback #3115 SSDI:Manoj S
-		//storedTo
-		//To support custom folder sharing
-		pShareFavHeader->dwStoredToSize = ReadUSSTRData(pszSvrPrnName,lIndex,NULL);
-		if(pShareFavHeader->dwStoredToSize > 0)
-		{
-			pShareFavHeader->dwSize += pShareFavHeader->dwStoredToSize;
-		}
+		//	pShareFavHeader->dwSize += pShareFavHeader->dwStoredToSize;
+		//}
 		
 		//storedtojc
 		pShareFavHeader->dwStoredToPrintUISize = ReadStoredToData(pszSvrPrnName,lIndex,NULL);
@@ -6142,6 +6121,7 @@ DWORD CShJsonUS::ReadFavDataFromJSON(WCHAR  *pszSvrPrnName, BYTE* pShareFavData,
 		pShareFavHeader->dwVersion = SHAREFAV_VER;
 		pShareFavHeader->dwOffset = sizeof(ShareFavHeader);
 		pShareFavHeader->dwScdmSize = sizeof(SCDM);
+		pShareFavHeader->dwFeatureInfolistSize = sizeof(GPDFEATUREOPTIONLIST);
 	
 		//read the pscdm from JSON
 		if(ReadData(pscdm, lIndex) == 0)
@@ -6149,12 +6129,16 @@ DWORD CShJsonUS::ReadFavDataFromJSON(WCHAR  *pszSvrPrnName, BYTE* pShareFavData,
 
 		pShareFavHeader->dwSize += pShareFavHeader->dwScdmSize;
 
-		//chapter insert
-		pShareFavHeader->dwChapterInsertSize = (SCUI_CHPINSPAGE_BUFSIZE + 1) * 2;
-		pChapterInsert = new WCHAR[pShareFavHeader->dwChapterInsertSize];
-		ReadChapterInsPage(lIndex, pChapterInsert, (SCUI_CHPINSPAGE_BUFSIZE + 1) * 2);
-		pShareFavHeader->dwFavField |= DM_FAV_CHAPTERINSERT;
-		pShareFavHeader->dwSize += pShareFavHeader->dwChapterInsertSize;
+
+		if (pShareFavHeader->dwFeatureInfolistSize > 0)
+		{
+			//pMSData = new BYTE[pShareFavHeader->dwFeatureInfolistSize];
+			if (ReadFeatureOptionData(&pFeatureOptionsList, lIndex) == 0)
+				goto EXIT;
+
+			pShareFavHeader->dwFavField |= DM_FAV_FEATUREINFOLIST;
+			pShareFavHeader->dwSize += pShareFavHeader->dwFeatureInfolistSize;
+		}
 
 		//margin shift
 		pShareFavHeader->dwMarginShiftSize = ReadUSMSData(pszSvrPrnName,lIndex,NULL);
@@ -6225,15 +6209,15 @@ DWORD CShJsonUS::ReadFavDataFromJSON(WCHAR  *pszSvrPrnName, BYTE* pShareFavData,
 		// <S><A> 2024.02.15,To Fix Feedback #3115 SSDI:Manoj S
 		//storedTo
 		//To support custom folder sharing
-		pShareFavHeader->dwStoredToSize = ReadUSSTRData(pszSvrPrnName,lIndex,NULL);
-		if(pShareFavHeader->dwStoredToSize > 0)
-		{
-			pSTRData = new BYTE[pShareFavHeader->dwStoredToSize];
-			ReadUSSTRData(pszSvrPrnName,lIndex,pSTRData);
+		//pShareFavHeader->dwStoredToSize = ReadUSSTRData(pszSvrPrnName,lIndex,NULL);//aqua
+		//if(pShareFavHeader->dwStoredToSize > 0)
+		//{
+		//	pSTRData = new BYTE[pShareFavHeader->dwStoredToSize];
+		//	ReadUSSTRData(pszSvrPrnName,lIndex,pSTRData);
 
-			pShareFavHeader->dwFavField |= DM_FAV_STOREDTO;
-			pShareFavHeader->dwSize += pShareFavHeader->dwStoredToSize;
-		}
+		//	pShareFavHeader->dwFavField |= DM_FAV_STOREDTO;
+		//	pShareFavHeader->dwSize += pShareFavHeader->dwStoredToSize;
+		//}
 		
 		//storedtojc
 		pShareFavHeader->dwStoredToPrintUISize = ReadStoredToData(pszSvrPrnName,lIndex,NULL);
@@ -6256,6 +6240,12 @@ DWORD CShJsonUS::ReadFavDataFromJSON(WCHAR  *pszSvrPrnName, BYTE* pShareFavData,
 		{
 			memcpy(pShareFavDataTmp, pscdm, pShareFavHeader->dwScdmSize);
 			pShareFavDataTmp += pShareFavHeader->dwScdmSize;
+		}
+
+		if (pShareFavHeader->dwFavField & DM_FAV_FEATUREINFOLIST)
+		{
+			memcpy(pShareFavDataTmp, &pFeatureOptionsList, pShareFavHeader->dwFeatureInfolistSize);
+			pShareFavDataTmp += pShareFavHeader->dwFeatureInfolistSize;
 		}
 
 		if(pShareFavHeader->dwFavField & DM_FAV_CHAPTERINSERT)
@@ -6360,6 +6350,11 @@ BOOL CShJsonUS::TransferOneFavDataFromHKLMToJSON(WCHAR  *pszSvrPrnName, DWORD dw
 	PShareFavHeader	pHeader = NULL;
 	WCHAR		*pszChpInsPage = NULL;
 
+	PFEATUREINFOLIST pFeatureInfoList = NULL;
+
+	GPDFEATUREOPTIONLIST pFeatureOptionsList;
+	SecureZeroMemory(&pFeatureOptionsList, sizeof(GPDFEATUREOPTIONLIST));
+
 	if(pszSvrPrnName == NULL || pShareFavData == NULL || pszTime == NULL || pszTitle == NULL)
 		goto EXIT;
 
@@ -6384,26 +6379,47 @@ BOOL CShJsonUS::TransferOneFavDataFromHKLMToJSON(WCHAR  *pszSvrPrnName, DWORD dw
 
 		pShareFavTmp += pHeader->dwOffset;
 		memcpy(pscdm,pShareFavTmp,pHeader->dwScdmSize);
+		pShareFavTmp += pHeader->dwScdmSize;
+
+
+		memcpy(&pFeatureOptionsList, pShareFavTmp, pHeader->dwFeatureInfolistSize);
+		pShareFavTmp += pHeader->dwFeatureInfolistSize;
 
 		//Write the scdm to JSON
-		//if(WriteData(pszTitle, pscdm,dwIndex,bOverWrite, pszTime, FALSE) == -1)//bear
-			//goto EXIT;
+		if(WriteData(pszTitle, pscdm, &pFeatureOptionsList,dwIndex,bOverWrite, pszTime, FALSE) == -1)//bear
+			goto EXIT;
 
-		pShareFavTmp += pHeader->dwScdmSize;
+		pFeatureInfoList = new FEATUREINFOLIST();
+		SecureZeroMemory(pFeatureInfoList, sizeof(FEATUREINFOLIST));
+
+		memset(pFeatureInfoList, 0, sizeof(FEATUREINFOLIST));
+		size_t nNumberOfFeatures = 0;
+		nNumberOfFeatures = GetGPDFeatureCount();
+
+		pFeatureInfoList->nNummberOfFeatures = nNumberOfFeatures;
+		pFeatureInfoList->pFeatureOptionsList = new FEATUREOPTIONSLIST[nNumberOfFeatures];
+		pFeatureInfoList->pFeatureOptionPair = new PRINT_FEATURE_OPTION[nNumberOfFeatures];
+
+		memset(pFeatureInfoList->pFeatureOptionsList, 0, nNumberOfFeatures * sizeof(FEATUREOPTIONSLIST));
+		memset(pFeatureInfoList->pFeatureOptionPair, 0, nNumberOfFeatures * sizeof(PRINT_FEATURE_OPTION));
+		//GetFeatureOptionFromGPDFeatureOptionList(featureinfo, &pFeatureOptionsList, dwIndex);
+		GetFeatureinfoFromGPDFeatureOptionList(pFeatureInfoList, &pFeatureOptionsList, dwIndex);
+		WriteEachData(pscdm, pFeatureInfoList, dwIndex);
+		
 	}
 
 	//chapter insert
-	if(pHeader->dwFavField & DM_FAV_CHAPTERINSERT)
-	{
-		pszChpInsPage = new WCHAR[pHeader->dwChapterInsertSize];
-		if(pszChpInsPage == NULL)
-			goto EXIT;
+	//if(pHeader->dwFavField & DM_FAV_CHAPTERINSERT)
+	//{
+	//	pszChpInsPage = new WCHAR[pHeader->dwChapterInsertSize];
+	//	if(pszChpInsPage == NULL)
+	//		goto EXIT;
 
-		memcpy(pszChpInsPage,pShareFavTmp,pHeader->dwChapterInsertSize);
-		WriteChapterInsPage(dwIndex, pszChpInsPage, pHeader->dwChapterInsertSize);
-		
-		pShareFavTmp += pHeader->dwChapterInsertSize;
-	}
+	//	memcpy(pszChpInsPage,pShareFavTmp,pHeader->dwChapterInsertSize);
+	//	WriteChapterInsPage(dwIndex, pszChpInsPage, pHeader->dwChapterInsertSize);
+	//	
+	//	pShareFavTmp += pHeader->dwChapterInsertSize;
+	//}
 
 	//margin shift
 	if(pHeader->dwFavField & DM_FAV_MARGINSHIFT)
@@ -6447,11 +6463,11 @@ BOOL CShJsonUS::TransferOneFavDataFromHKLMToJSON(WCHAR  *pszSvrPrnName, DWORD dw
 	//	pShareFavTmp += pHeader->dwTabShiftSize;
 	//}
 // <S><A> 2024.02.15,To Fix Feedback #3115 SSDI:Manoj S
-	if(pHeader->dwFavField & DM_FAV_STOREDTO)
-	{
-		WriteShareDataSTRToUS(pszSvrPrnName, dwIndex,pShareFavTmp,pHeader->dwStoredToSize);
-		pShareFavTmp += pHeader->dwStoredToSize;
-	}
+	//if(pHeader->dwFavField & DM_FAV_STOREDTO)//aqua
+	//{
+	//	WriteShareDataSTRToUS(pszSvrPrnName, dwIndex,pShareFavTmp,pHeader->dwStoredToSize);
+	//	pShareFavTmp += pHeader->dwStoredToSize;
+	//}
 	//storedTo
 	if(pHeader->dwFavField & DM_FAV_STOREDTO_PRT_UI)
 	{
@@ -6659,8 +6675,12 @@ DWORD CShJsonUS::ReadUSSTRData(WCHAR  *pszSvrPrnName, long lIndex, BYTE* pSTRDat
 	if(!blRet)
 		goto EXIT;
 
-	    wcsncpy(strd.pszFolderName, szSelFolderName, sizeof(strd.pszFolderName) - 1);
-		strd.pszFolderName[sizeof(strd.pszFolderName) - 1] = '\0'; // Null-terminate the string
+	   // wcsncpy(strd.pszFolderName, szSelFolderName, sizeof(strd.pszFolderName) - 1);
+		//strd.pszFolderName[sizeof(strd.pszFolderName) - 1] = '\0'; // Null-terminate the string
+
+		wcsncpy(strd.pszFolderName, szSelFolderName, _countof(strd.pszFolderName) - 1);
+		strd.pszFolderName[_countof(strd.pszFolderName) - 1] = '\0';  // Null-terminate
+
 
 		strd.dwFolderIndex = dwFoldIndex;
 		memcpy(pSTRDataTmp, &strd, sizeof(STORED_TO_DATA));
@@ -6758,49 +6778,49 @@ EXIT:
 DWORD CShJsonUS::ReadStoredToData(WCHAR  *pszSvrPrnName, long lIndex, BYTE* pSTRJCData)
 {
 		DWORD			dwSize = 0;
-//	CShJsonStored 	*pjsonstrd = NULL;
+	CShJsonStored 	*pjsonstrd = NULL;
 
-//	DWORD			dwSTRJCCount = 0;
-//	BYTE			*pSTRJCDataTmp = NULL;
-//	DWORD			i = 0;
-//	BOOL			blSuccess = FALSE;
-//	STORED_TO_DATA_printui strdjc;
-//
-//	if(pszSvrPrnName == NULL)
-//		goto EXIT;
-//	
-//	pjsonstrd = new CShJsonStored(m_hInst, pszSvrPrnName);
-//	if(pjsonstrd == NULL)
-//		goto EXIT;
-//
-//	pjsonstrd->SetParent(this);
-//
-//	//dwSTRJCCount = (*pjsonstrd).ReadMSCount(JSON_KEY_MS_ROOT_BASE_US, lIndex);
-//	blSuccess = m_pParent->ReadJsonDWORDData(JSON_KEY_STRD_ROOT_BASE, JSON_ENT_STRD_COUNT, dwSTRJCCount);
-//	if(dwSTRJCCount == 0)
-//		goto EXIT;
-//
-//	dwSize = sizeof(dwSTRJCCount) + dwSTRJCCount * sizeof(STORED_TO_DATA_printui);			
-//	if(pSTRJCData == NULL)
-//	{
-//		goto EXIT;
-//	}
-//
-//	pSTRJCDataTmp = pSTRJCData;
-//	memcpy(pSTRJCDataTmp,&dwSTRJCCount,sizeof(dwSTRJCCount));
-//	pSTRJCDataTmp += sizeof(dwSTRJCCount);
-//
-//	for(i = 0; i < dwSTRJCCount; i++)
-//	{
-//		memset(&strdjc, 0, sizeof(strdjc));
-//		(*pjsonstrd).ReadStrdData(i, strdjc.FolderName, sizeof(strdjc.FolderName), &strdjc.HasFolderPin);
-//		memcpy(pSTRJCDataTmp,&strdjc,sizeof(STORED_TO_DATA_printui));
-//		pSTRJCDataTmp += sizeof(STORED_TO_DATA_printui);
-//	}
-//
-//EXIT:
-//	if(pjsonstrd != NULL)
-//		delete pjsonstrd;//soup
+	DWORD			dwSTRJCCount = 0;
+	BYTE			*pSTRJCDataTmp = NULL;
+	DWORD			i = 0;
+	BOOL			blSuccess = FALSE;
+	STORED_TO_DATA_printui strdjc;
+
+	if(pszSvrPrnName == NULL)
+		goto EXIT;
+	
+	pjsonstrd = new CShJsonStored(m_hInst, pszSvrPrnName, m_hStringResourceHandle);
+	if(pjsonstrd == NULL)
+		goto EXIT;
+
+	pjsonstrd->SetParent(this);
+
+	//dwSTRJCCount = (*pjsonstrd).ReadMSCount(JSON_KEY_MS_ROOT_BASE_US, lIndex);
+	blSuccess = m_pParent->ReadJsonDWORDData(JSON_KEY_STRD_ROOT_BASE, JSON_ENT_STRD_COUNT, dwSTRJCCount);
+	if(dwSTRJCCount == 0)
+		goto EXIT;
+
+	dwSize = sizeof(dwSTRJCCount) + dwSTRJCCount * sizeof(STORED_TO_DATA_printui);			
+	if(pSTRJCData == NULL)
+	{
+		goto EXIT;
+	}
+
+	pSTRJCDataTmp = pSTRJCData;
+	memcpy(pSTRJCDataTmp,&dwSTRJCCount,sizeof(dwSTRJCCount));
+	pSTRJCDataTmp += sizeof(dwSTRJCCount);
+
+	for(i = 0; i < dwSTRJCCount; i++)
+	{
+		memset(&strdjc, 0, sizeof(strdjc));
+		(*pjsonstrd).ReadStrdData(i, strdjc.FolderName, sizeof(strdjc.FolderName), &strdjc.HasFolderPin);
+		memcpy(pSTRJCDataTmp,&strdjc,sizeof(STORED_TO_DATA_printui));
+		pSTRJCDataTmp += sizeof(STORED_TO_DATA_printui);
+	}
+
+EXIT:
+	if(pjsonstrd != NULL)
+		delete pjsonstrd;
 
 	return dwSize;
 }
@@ -6825,54 +6845,54 @@ DWORD CShJsonUS::ReadStoredToData(WCHAR  *pszSvrPrnName, long lIndex, BYTE* pSTR
 long CShJsonUS::WriteShareDataStoredToUS(WCHAR  *pszSvrPrnName, long lIndex, BYTE* pSTRJCData, DWORD dwSize)
 {
 	long			lRet = -1;
-//	CShJsonStored 	*pjsonstrd = NULL;
-//	STORED_TO_DATA_printui strdjc;
-//	DWORD			dwSTRJCCount;
-//	DWORD			dwDataSize;
-//	DWORD			i;
-//	BYTE			*pSTRJCDataTmp = NULL;
-//		
-//	// ================================================
-//	// _/_/_/  パラメータチェック
-//	// ================================================
-//	if(pszSvrPrnName == NULL)
-//		goto EXIT;
-//
-//	if(pSTRJCData == NULL || dwSize <= 0)
-//		goto EXIT;
-//
-//	pjsonstrd = new CShJsonStored(m_hInst, pszSvrPrnName);
-//	if(pjsonstrd == NULL)
-//		goto EXIT;
-//
-//	pjsonstrd->SetParent(this);
-//
-//	pSTRJCDataTmp = pSTRJCData;
-//	memcpy(&dwSTRJCCount,pSTRJCDataTmp,sizeof(dwSTRJCCount));
-//	if(dwSTRJCCount == 0)
-//		goto EXIT;
-//	
-//	pSTRJCDataTmp += sizeof(dwSTRJCCount);
-//
-//	dwDataSize = sizeof(dwSTRJCCount) + dwSTRJCCount * sizeof(STORED_TO_DATA_printui);
-//	if(dwSize != dwDataSize)
-//		goto EXIT;
-//
-//	for(i=0; i < dwSTRJCCount; i++)
-//	{
-//		memset(&strdjc, 0, sizeof(strdjc));
-//		memcpy(&strdjc,pSTRJCDataTmp,sizeof(STORED_TO_DATA_printui));
-//		(*pjsonstrd).WriteStrdData(i, strdjc.FolderName, strdjc.HasFolderPin);
-//		pSTRJCDataTmp += sizeof(STORED_TO_DATA_printui);
-//	}
-//	
-//	(*pjsonstrd).WriteStrdCount(dwSTRJCCount);
-//
-//	lRet = lIndex;
-//
-//EXIT:
-//	if(pjsonstrd != NULL)
-//		delete pjsonstrd;//soup
+	CShJsonStored 	*pjsonstrd = NULL;
+	STORED_TO_DATA_printui strdjc;
+	DWORD			dwSTRJCCount;
+	DWORD			dwDataSize;
+	DWORD			i;
+	BYTE			*pSTRJCDataTmp = NULL;
+		
+	// ================================================
+	// _/_/_/  パラメータチェック
+	// ================================================
+	if(pszSvrPrnName == NULL)
+		goto EXIT;
+
+	if(pSTRJCData == NULL || dwSize <= 0)
+		goto EXIT;
+
+	pjsonstrd = new CShJsonStored(m_hInst, pszSvrPrnName, m_hStringResourceHandle);
+	if(pjsonstrd == NULL)
+		goto EXIT;
+
+	pjsonstrd->SetParent(this);
+
+	pSTRJCDataTmp = pSTRJCData;
+	memcpy(&dwSTRJCCount,pSTRJCDataTmp,sizeof(dwSTRJCCount));
+	if(dwSTRJCCount == 0)
+		goto EXIT;
+	
+	pSTRJCDataTmp += sizeof(dwSTRJCCount);
+
+	dwDataSize = sizeof(dwSTRJCCount) + dwSTRJCCount * sizeof(STORED_TO_DATA_printui);
+	if(dwSize != dwDataSize)
+		goto EXIT;
+
+	for(i=0; i < dwSTRJCCount; i++)
+	{
+		memset(&strdjc, 0, sizeof(strdjc));
+		memcpy(&strdjc,pSTRJCDataTmp,sizeof(STORED_TO_DATA_printui));
+		(*pjsonstrd).WriteStrdData(i, strdjc.FolderName, strdjc.HasFolderPin);
+		pSTRJCDataTmp += sizeof(STORED_TO_DATA_printui);
+	}
+	
+	(*pjsonstrd).WriteStrdCount(dwSTRJCCount);
+
+	lRet = lIndex;
+
+EXIT:
+	if(pjsonstrd != NULL)
+		delete pjsonstrd;//soup
 
 	return lRet;
 }

@@ -6597,17 +6597,34 @@ BOOL CDocumentPropertyPage::OnUsSave(HWND hDlg)
 		pControl.EnableApplyButton(hDlg);
 	}
 	
-	//<S><A>To Implement Task#3114,13-09-2024,SSDI:Manoj S
-	preg->ReadShareDayTimeFuncFromHKLM(m_pPrinterName, szTextHKLMW, REG_ENT_SHARE_KEYSIZEW);
-
-	if (wcslen(szTextHKLMW) > 0)
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
 	{
-		bShare = preg->GetValidFlag(szTextHKLMW);
+		pjsonus->ReadShareDayTimeFuncFromHKLM(m_pPrinterName, szTextHKLMW, REG_ENT_SHARE_KEYSIZEW);
+
+		if (wcslen(szTextHKLMW) > 0)
+		{
+			bShare = pjsonus->GetValidFlagJson(szTextHKLMW);
+		}
+
+		if (bShare == TRUE)
+		{
+			pjsonus->WriteFavItemsFromJSONToHKLM(m_pPrinterName);
+		}
 	}
-
-	if (bShare == TRUE)
+	else
 	{
-		preg->WriteFavItemsFromHKCUToHKLM(m_pPrinterName);
+		//<S><A>To Implement Task#3114,13-09-2024,SSDI:Manoj S
+		preg->ReadShareDayTimeFuncFromHKLM(m_pPrinterName, szTextHKLMW, REG_ENT_SHARE_KEYSIZEW);
+
+		if (wcslen(szTextHKLMW) > 0)
+		{
+			bShare = preg->GetValidFlag(szTextHKLMW);
+		}
+
+		if (bShare == TRUE)
+		{
+			preg->WriteFavItemsFromHKCUToHKLM(m_pPrinterName);
+		}
 	}
 	//<E>To Implement Task #3114,13-09-2024,SSDI:Manoj S
 	blRet = TRUE;
@@ -6779,16 +6796,33 @@ BOOL CDocumentPropertyPage::OnUsDelete(HWND hDlg)
 		(*pjsonus).WriteJsonDataToFile();
 	}
 
-	preg->ReadShareDayTimeFuncFromHKLM(m_pPrinterName, szTextHKLMW, REG_ENT_SHARE_KEYSIZEW);
-
-	if (wcslen(szTextHKLMW) > 0)
+	if ((*m_pmcf).IsWriteToJson() == TRUE)
 	{
-		bShare = preg->GetValidFlag(szTextHKLMW);
+		pjsonus->ReadShareDayTimeFuncFromHKLM(m_pPrinterName, szTextHKLMW, REG_ENT_SHARE_KEYSIZEW);
+
+		if (wcslen(szTextHKLMW) > 0)
+		{
+			bShare = pjsonus->GetValidFlagJson(szTextHKLMW);
+		}
+
+		if (bShare == TRUE)
+		{
+			pjsonus->WriteFavItemsFromJSONToHKLM(m_pPrinterName);
+		}
 	}
-
-	if (bShare == TRUE)
+	else
 	{
-		preg->WriteFavItemsFromHKCUToHKLM(m_pPrinterName);
+		preg->ReadShareDayTimeFuncFromHKLM(m_pPrinterName, szTextHKLMW, REG_ENT_SHARE_KEYSIZEW);
+
+		if (wcslen(szTextHKLMW) > 0)
+		{
+			bShare = preg->GetValidFlag(szTextHKLMW);
+		}
+
+		if (bShare == TRUE)
+		{
+			preg->WriteFavItemsFromHKCUToHKLM(m_pPrinterName);
+		}
 	}
 //<E>To Implement Task #3114,13-09-2024,SSDI:Manoj S
 	blRet = TRUE;
@@ -7571,3 +7605,59 @@ BOOL CDocumentPropertyPage::Update_GPDFeatureOptionList()
 }
 
 //<E>To Implement Task #3114,13-09-2024,SSDI:Manoj S
+
+BOOL CDocumentPropertyPage::DealWithFavItemsInHKLMForJson()
+{
+	BOOL bRet = FALSE;
+	CShJsonUS		*pjsonus = NULL;
+	CShJsonWm		*pjsonwm = NULL;
+	TCHAR szWaterMarkDatFilePath[_MAX_PATH] = { 0 };
+	GetProjectFileName(szWaterMarkDatFilePath, L"wm62.dat");
+
+	CShIniFile* cshinifile = new CShIniFile(ghInstance, m_pPrinterName, szWaterMarkDatFilePath, FALSE);
+	pjsonus = new CShJsonUS(ghInstance, m_pPrinterName);
+	pjsonus->Init();
+
+	pjsonwm = new CShJsonWm(ghInstance, m_pPrinterName, m_hStringResourceHandle);
+	pjsonwm->Init();
+
+	if (pjsonus == NULL)
+	{
+		goto EXIT;
+	}
+	if (pjsonwm == NULL)
+		goto EXIT;
+
+
+	bRet = pjsonus->DealWithFavItemsInHKLMForJson(m_pPrinterName);
+	if (bRet == TRUE)
+		pjsonus->WriteJsonDataToFile();
+
+	if ((*pjsonwm).ReadCount() == 0)
+		(*pjsonwm).reset(m_pPrinterName, cshinifile);
+
+	bRet = pjsonwm->DealWithFavItemsInHKLMForJson(m_pPrinterName);
+	if (bRet == TRUE)
+		pjsonwm->WriteJsonDataToFile();
+
+
+	bRet = TRUE;
+EXIT:
+
+	if (cshinifile != NULL)
+	{
+		delete cshinifile;
+		cshinifile = NULL;
+	}
+	if (pjsonus != NULL)
+	{
+		delete pjsonus;
+		pjsonus = NULL;
+	}
+	if (pjsonwm != NULL)
+	{
+		delete pjsonwm;
+		pjsonwm = NULL;
+	}
+	return bRet;
+}

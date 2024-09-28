@@ -254,7 +254,7 @@ void CWaterMarkDialog::CreateControlClass(void)
 	{
 //		//m_pjsonwm = new CShJsonWm(ghInstance, m_pPrinterName, m_hStringResourceHandle);
 //		//m_pjsonwm->Init();
-//		m_pjsonwm->CShJsonWm::DealWithFavItemsInHKLM(m_pPrinterName);
+		m_pjsonwm->DealWithFavItemsInHKLMForJson(m_pPrinterName);
 		m_pjsonwm->SelectTheCorrectFavItemJson(m_PropertySheetState.szWMNameHash, m_PropertySheetState.wWmIndex);
 	}
 ////<S><A>To Implement Task#3114,13-09-2024,SSDI:Manoj S
@@ -2140,18 +2140,35 @@ BOOL CWaterMarkDialog::OnWaterMarkDelete(HWND hDlg)
 	memcpy_s(&m_WaterMarkData, sizeof(WATERMARKDATA), &m_WaterMarkDataChanged, sizeof(WATERMARKDATA));
 	PropSheet_Changed(GetParent(hDlg), hDlg);
 
-	m_pWatermarkregdata->ReadShareDayTimeFuncFromHKLM(m_pPrinterName, szTextHKLMW, REG_ENT_SHARE_KEYSIZEW);
-
-	if (wcslen(szTextHKLMW) > 0)
+	if ((*m_pIniFile).IsWriteToJson() == TRUE)
 	{
-		bShare = m_pWatermarkregdata->GetValidFlag(szTextHKLMW);
-	}
+		m_pjsonwm->ReadShareDayTimeFuncFromHKLM(m_pPrinterName, szTextHKLMW, REG_ENT_SHARE_KEYSIZEW);
 
-	if (bShare == TRUE)
-	{
-		m_pWatermarkregdata->WriteFavItemsFromHKCUToHKLM(m_pPrinterName);
+		if (wcslen(szTextHKLMW) > 0)
+		{
+			bShare = m_pjsonwm->GetValidFlagJson(szTextHKLMW);
+		}
+
+		if (bShare == TRUE)
+		{
+			m_pjsonwm->WriteFavItemsFromJSONToHKLM(m_pPrinterName);
+		}
 	}
-	//<E>To Implement Task #3114,13-09-2024,SSDI:Manoj S
+	else
+	{
+		m_pWatermarkregdata->ReadShareDayTimeFuncFromHKLM(m_pPrinterName, szTextHKLMW, REG_ENT_SHARE_KEYSIZEW);
+
+		if (wcslen(szTextHKLMW) > 0)
+		{
+			bShare = m_pWatermarkregdata->GetValidFlag(szTextHKLMW);
+		}
+
+		if (bShare == TRUE)
+		{
+			m_pWatermarkregdata->WriteFavItemsFromHKCUToHKLM(m_pPrinterName);
+		}
+		//<E>To Implement Task #3114,13-09-2024,SSDI:Manoj S
+	}
 	return TRUE;
 }
 
@@ -2228,17 +2245,35 @@ BOOL CWaterMarkDialog::OnWaterMarkAdd(HWND hDlg)
 	//	//<E>To Fix Feedback #37,29122020,SSDI:Chanchal Singla
 	}
 //<S><A>To Implement Task#3114,13-09-2024,SSDI:Manoj S
-	m_pWatermarkregdata->ReadShareDayTimeFuncFromHKLM(m_pPrinterName, szTextHKLMW, REG_ENT_SHARE_KEYSIZEW);
+	
+		if ((*m_pIniFile).IsWriteToJson() == TRUE)
+		{
+			m_pjsonwm->ReadShareDayTimeFuncFromHKLM(m_pPrinterName, szTextHKLMW, REG_ENT_SHARE_KEYSIZEW);
 
-	if (wcslen(szTextHKLMW) > 0)
-	{
-		bShare = m_pWatermarkregdata->GetValidFlag(szTextHKLMW);
-	}
+			if (wcslen(szTextHKLMW) > 0)
+			{
+				bShare = m_pjsonwm->GetValidFlagJson(szTextHKLMW);
+			}
 
-	if (bShare == TRUE)
-	{
-		m_pWatermarkregdata->WriteFavItemsFromHKCUToHKLM(m_pPrinterName);
-	}
+			if (bShare == TRUE)
+			{
+				m_pjsonwm->WriteFavItemsFromJSONToHKLM(m_pPrinterName);
+			}
+		}
+		else
+		{
+			m_pWatermarkregdata->ReadShareDayTimeFuncFromHKLM(m_pPrinterName, szTextHKLMW, REG_ENT_SHARE_KEYSIZEW);
+
+			if (wcslen(szTextHKLMW) > 0)
+			{
+				bShare = m_pWatermarkregdata->GetValidFlag(szTextHKLMW);
+			}
+
+			if (bShare == TRUE)
+			{
+				m_pWatermarkregdata->WriteFavItemsFromHKCUToHKLM(m_pPrinterName);
+			}
+		}
 //<E>To Implement Task #3114,13-09-2024,SSDI:Manoj S
 	delete pdlg;
 	pdlg = NULL;
